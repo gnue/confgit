@@ -246,11 +246,6 @@ class Confgit
 		}
 	end
 
-	# ログする
-	def confgit_lg(*args)
-		git('log', '--graph', '--all', '--color', '--pretty="%x09%h %cn%x09%s %Cred%d"')
-	end
-
 	# tree表示する
 	def confgit_tree(*args)
 		pushdir()
