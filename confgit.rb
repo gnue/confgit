@@ -128,6 +128,17 @@ class Confgit
 		File.expand_path(path, dir).gsub(%r|^/private/|, '/')
 	end
 
+	# オプションを取出す
+	def getopts(args)
+		options = []
+		args.each { |opt|
+			break unless /^-/ =~ opt
+			options << args.shift
+		}
+
+		options
+	end
+
 	# コマンド
 
 	# リポジトリの初期化
@@ -169,11 +180,7 @@ class Confgit
 	def confgit_rm(*args)
 		return unless File.exist?(@repo_path)
 
-		options = []
-		args.each { |opt|
-			break unless /^-/ =~ opt
-			options << args.shift
-		}
+		options = getopts(args)
 
 		files = args.collect { |from|
 			File.join(@repo_path, expand_path(from))
