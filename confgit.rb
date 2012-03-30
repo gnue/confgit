@@ -105,6 +105,11 @@ class Confgit
 		}
 	end
 
+	# パスを展開する
+	def expand_path(path, dir = nil)
+		File.expand_path(path, dir).gsub(%r|^/private/|, '/')
+	end
+
 	# コマンド
 
 	# リポジトリの初期化
@@ -118,6 +123,7 @@ class Confgit
 		confgit_init unless File.exist?(@repo_path)
 
 		files.each { |from|
+			from = expand_path(from)
 			to = File.join(@repo_path, from)
 
 			if filecopy(from, to)
@@ -128,7 +134,11 @@ class Confgit
 
 	# ファイルを管理対象から削除
 	def confgit_rm(*files)
-		files.each { |from| 
+		return unless File.exist?(@repo_path)
+
+		files.each { |from|
+			from = expand_path(from)
+
 			to = File.join(@repo_path, from)
 			git('rm', '-f', to)
 		}
