@@ -101,7 +101,8 @@ class Confgit
 		end
 	end
 
-	def each(path = '.')
+	# ディレクトリ内のファイルを繰返す
+	def dir_each(path = '.')
 		pushdir(path)
 
 		begin
@@ -116,6 +117,24 @@ class Confgit
 							yield(file)
 						end
 					}
+				end
+			}
+		ensure
+			popdir()
+		end
+	end
+
+	# git に管理されているファイルを繰返す
+	def git_each(path = '.')
+		pushdir(path)
+
+		begin
+			open("| git ls-files") {|f|
+				while line = f.gets
+					file = line.chomp
+					next if File.directory?(file)
+
+					yield(file)
 				end
 			}
 		ensure
@@ -155,7 +174,7 @@ class Confgit
 			path = expand_path(path)
 
 			if File.directory?(path)
-				each(path) { |file|
+				dir_each(path) { |file|
 					next if File.directory?(file)
 	
 					from = File.join(path, file)
@@ -200,7 +219,7 @@ class Confgit
 		rescue
 		end
 
-		each { |file|
+		git_each { |file|
 			next if File.directory?(file)
 
 			from = File.join('/', file)
@@ -208,7 +227,7 @@ class Confgit
 
 			next unless File.exist?(from)
 
-			if force || File.stat(from).mtime > File.stat(to).mtime
+			if force || ! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
 				print file, "\n"
 				filecopy(from, to)
 			end
@@ -228,7 +247,7 @@ class Confgit
 		rescue
 		end
 
-		each { |file|
+		dir_each { |file|
 			next if File.directory?(file)
 
 			from = File.join(@repo_path, file)
