@@ -166,15 +166,20 @@ class Confgit
 	end
 
 	# ファイルを管理対象から削除
-	def confgit_rm(*files)
+	def confgit_rm(*args)
 		return unless File.exist?(@repo_path)
 
-		files.each { |from|
-			from = expand_path(from)
-
-			to = File.join(@repo_path, from)
-			git('rm', '-f', to)
+		options = []
+		args.each { |opt|
+			break unless /^-/ =~ opt
+			options << args.shift
 		}
+
+		files = args.collect { |from|
+			File.join(@repo_path, expand_path(from))
+		}
+
+		git('rm', *options, *files)
 	end
 
 	# バックアップする
@@ -247,18 +252,18 @@ if __FILE__ == $0
 
 	# 使い方
 	def usage
-		abort "Usage: #{CMD} <command> [<args>]\n" +
-			  "  --help\n"
+		abort "Usage: #{CMD} [--help] <command> [<args>]\n"
 	end
 
 	# コマンド引数の解析
-	begin
-		config = {}
+	config = {}
 
+	begin
 		opts = OptionParser.new
 		opts.on('--help')			{ usage }
-		opts.parse!(ARGV)
-	rescue => e
+		opts.order!(ARGV)
+	rescue
+		usage
 	end
 
 	command = ARGV.shift
