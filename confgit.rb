@@ -53,9 +53,13 @@ class Confgit
 		send "confgit_#{command}", *args
 	end
 
+	def chdir(subdir = '.')
+		Dir.chdir(File.expand_path(subdir, @repo_path))
+	end
+
 	def git(*args)
 		begin
-			Dir.chdir(@repo_path)
+			chdir()
 			system('git', *args);
 		rescue => e
 			print e, "\n"
@@ -84,8 +88,8 @@ class Confgit
 		end
 	end
 
-	def each(path = @repo_path)
-		Dir.chdir(path)
+	def each(subdir = '.')
+		chdir(subdir)
 		Dir.foreach('.') { |file|
 			next if /^(\.git|\.$|\.\.$)/ =~ file
 
@@ -177,12 +181,18 @@ class Confgit
 	# tree表示する
 	def confgit_tree(*args)
 		begin
-			Dir.chdir(@repo_path)
+			chdir()
 			system('tree', *args)
 		rescue => e
 			print e, "\n"
 		end
 	end
+
+	# カレントディレクトリを変更
+	def confgit_pwd(subdir = '.')
+		print File.expand_path(subdir, @repo_path), "\n"
+	end
+
 end
 
 
@@ -196,11 +206,14 @@ if __FILE__ == $0
 	end
 
 	# コマンド引数の解析
-	config = {}
+	begin
+		config = {}
 
-	opts = OptionParser.new
-	opts.on('--help')			{ usage }
-	opts.parse!(ARGV)
+		opts = OptionParser.new
+		opts.on('--help')			{ usage }
+		opts.parse!(ARGV)
+	rescue => e
+	end
 
 	command = ARGV.shift
 	usage unless command
