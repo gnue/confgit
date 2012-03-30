@@ -219,6 +219,15 @@ class Confgit
 
 	# リストアする
 	def confgit_restore(*args)
+		force = false
+
+		begin
+			opts = OptionParser.new
+			opts.on('-f')		{ force = true }
+			opts.order!(args)
+		rescue
+		end
+
 		each { |file|
 			next if File.directory?(file)
 
@@ -228,7 +237,7 @@ class Confgit
 			next unless File.exist?(from)
 
 			if File.exist?(to)
-				if File.stat(from).mtime > File.stat(to).mtime
+				if force || File.stat(from).mtime > File.stat(to).mtime
 					print file, "\n"
 #					filecopy(from, to)
 				end
