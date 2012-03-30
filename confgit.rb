@@ -18,6 +18,8 @@ class Confgit
 
 		@config = read_config(File.join(@base_path, 'confgit.conf'))
 		@repo_path = File.expand_path(@config['repo'], @repos_path)
+
+		@dir_stack = []
 	end
 
 	# 設定の初期値
@@ -53,16 +55,27 @@ class Confgit
 		send "confgit_#{command}", *args
 	end
 
-	def chdir(subdir = '.')
+	# カレントディレクトリをプッシュする
+	def pushdir(subdir = '.')
+		@dir_stack.push(Dir.pwd)
 		Dir.chdir(File.expand_path(subdir, @repo_path))
 	end
 
+	# カレントディレクトリをポップする
+	def popdir()
+		Dir.chdir(@dir_stack.pop) if 0 < @dir_stack.length
+	end
+
+	# git を呼出す
 	def git(*args)
+		pushdir()
+
 		begin
-			chdir()
 			system('git', *args);
 		rescue => e
 			print e, "\n"
+		ensure
+			popdir()
 		end
 	end
 
@@ -88,21 +101,26 @@ class Confgit
 		end
 	end
 
-	def each(subdir = '.')
-		chdir(subdir)
-		Dir.foreach('.') { |file|
-			next if /^(\.git|\.$|\.\.$)/ =~ file
+	def each(path = '.')
+		pushdir(path)
 
-			yield(file)
-
-			if File.directory?(file)
-				Dir.glob("#{file}/**/*", File::FNM_DOTMATCH) { |file|
-					if /(^|\/)(\.git|\.|\.\.)$/ !~ file
-						yield(file)
-					end
-				}
-			end
-		}
+		begin
+			Dir.foreach('.') { |file|
+				next if /^(\.git|\.$|\.\.$)/ =~ file
+	
+				yield(file)
+	
+				if File.directory?(file)
+					Dir.glob("#{file}/**/*", File::FNM_DOTMATCH) { |file|
+						if /(^|\/)(\.git|\.|\.\.)$/ !~ file
+							yield(file)
+						end
+					}
+				end
+			}
+		ensure
+			popdir()
+		end
 	end
 
 	# パスを展開する
@@ -122,12 +140,27 @@ class Confgit
 	def confgit_add(*files)
 		confgit_init unless File.exist?(@repo_path)
 
-		files.each { |from|
-			from = expand_path(from)
-			to = File.join(@repo_path, from)
+		files.each { |path|
+			path = expand_path(path)
 
-			if filecopy(from, to)
-				git('add', to)
+			if File.directory?(path)
+				each(path) { |file|
+					next if File.directory?(file)
+	
+					from = File.join(path, file)
+					to = File.join(@repo_path, from)
+	
+					if filecopy(from, to)
+						git('add', to)
+					end
+				}
+			else
+				from = path
+				to = File.join(@repo_path, from)
+
+				if filecopy(from, to)
+					git('add', to)
+				end
 			end
 		}
 	end
@@ -190,11 +223,14 @@ class Confgit
 
 	# tree表示する
 	def confgit_tree(*args)
+		pushdir()
+
 		begin
-			chdir()
 			system('tree', *args)
 		rescue => e
 			print e, "\n"
+		ensure
+			popdir()
 		end
 	end
 
