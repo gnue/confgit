@@ -1,6 +1,52 @@
 #!/usr/bin/env ruby
 # coding: UTF-8
 
+=begin
+
+= 設定ファイルを git で管理するためのツール
+
+
+== 使い方
+
+  $ confgit.rb add ファイル名				# ファイルを追加
+  $ confgit.rb rm ファイル名				# ファイルを削除
+  $ confgit.rb rm -rf ディレクトリ名		# ディレクトリを削除
+  $ confgit.rb backup					# バックアップ（更新されたもののみ）
+  $ confgit.rb backup -f				# 強制バックアップ
+  $ confgit.rb restore					# リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
+  $ confgit.rb restore -f				# 強制リストア（まだ実際のファイルコピーは行えません）
+  $ confgit.rb tree						# ツリー表示（要treeコマンド）
+  $ confgit.rb pwd						# リポジトリのパスを表示
+
+== ディレクトリ構造
+
+  ~/.etc/confgit
+  ├── confgit.conf			-- 設定ファイル
+  └── repos
+      └── `hostname`		-- リポジトリ（デフォルト）
+
+== 設定ファイル
+
+confgit.rb
+
+  {
+     "repo":	"hostname",		// リポジトリの場所（デフォルトは hostname が設定される）
+  }
+
+== 動作環境
+
+* 以下のライブラリが必要です（gem でインストールできます）
+  * json
+
+== TODO
+
+* 更新確認を hash で行う（現在は日付で確認）
+* user/group の情報を保存
+* user/group の情報を復元
+* リストアで実際のファイルコピーを行えるようにする
+
+=end
+
 
 require 'rubygems'
 require 'optparse'
