@@ -48,9 +48,11 @@ confgit.rb
 =end
 
 
-require 'rubygems'
 require 'optparse'
 require 'fileutils'
+require 'etc'
+
+require 'rubygems'
 require 'json'
 
 
@@ -308,6 +310,28 @@ class Confgit
 				end
 			else
 			end
+		}
+	end
+
+	# 一覧表示する
+	def confgit_list(*args)
+
+		git_each { |file|
+			next if File.directory?(file)
+
+			from = File.join('/', file)
+			to = File.join(@repo_path, file)
+
+			if File.exist?(from)
+				stat = File.stat(from)
+				user = Etc.getpwuid(stat.uid).name
+				group = Etc.getgrgid(stat.gid).name
+			else
+				user = '-'
+				group = '-'
+			end
+
+			print "#{user}\t#{group}\t#{from}\n"
 		}
 	end
 
