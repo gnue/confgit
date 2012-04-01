@@ -298,20 +298,20 @@ class Confgit
 		rescue
 		end
 
-		dir_each { |file|
+		git_each { |file|
 			next if File.directory?(file)
 
 			from = File.join(@repo_path, file)
 			to = File.join('/', file)
 
-			next unless File.exist?(from)
+			unless File.exist?(from)
+				print "[?] #{file}\n"
+				next
+			end
 
-			if File.exist?(to)
-				if force || File.stat(from).mtime > File.stat(to).mtime
-					print file, "\n"
-#					filecopy(from, to)
-				end
-			else
+			if force || ! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
+				print "<-- #{file}\n"
+#				filecopy(from, to)
 			end
 		}
 	end
