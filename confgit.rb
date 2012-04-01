@@ -273,10 +273,13 @@ class Confgit
 			from = File.join('/', file)
 			to = File.join(@repo_path, file)
 
-			next unless File.exist?(from)
+			unless File.exist?(from)
+				print "[?] #{file}\n"
+				next
+			end
 
 			if force || ! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
-				print file, "\n"
+				print "--> #{file}\n"
 				filecopy(from, to)
 			end
 		}
