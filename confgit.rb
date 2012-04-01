@@ -118,8 +118,6 @@ class Confgit
 
 		@config = read_config(File.join(@base_path, 'confgit.conf'))
 		@repo_path = File.expand_path(@config['repo'], @repos_path)
-
-		@dir_stack = []
 	end
 
 	# 設定の初期値
@@ -155,28 +153,15 @@ class Confgit
 		send "confgit_#{command}", *args
 	end
 
-	# カレントディレクトリをプッシュする
-	def pushdir(subdir = '.')
-		@dir_stack.push(Dir.pwd)
-		Dir.chdir(File.expand_path(subdir, @repo_path))
-	end
-
-	# カレントディレクトリをポップする
-	def popdir()
-		Dir.chdir(@dir_stack.pop) if 0 < @dir_stack.length
-	end
-
 	# git を呼出す
 	def git(*args)
-		pushdir()
-
-		begin
-			system('git', *args);
-		rescue => e
-			print e, "\n"
-		ensure
-			popdir()
-		end
+		Dir.chdir(@repo_path) { |path|
+			begin
+				system('git', *args);
+			rescue => e
+				print e, "\n"
+			end
+		}
 	end
 
 	# ファイルのコピー（属性は維持する）
@@ -202,10 +187,8 @@ class Confgit
 	end
 
 	# ディレクトリ内のファイルを繰返す
-	def dir_each(path = '.')
-		pushdir(path)
-
-		begin
+	def dir_each(subdir = '.')
+		Dir.chdir(File.expand_path(subdir, @repo_path)) { |path|
 			Dir.foreach('.') { |file|
 				next if /^(\.git|\.$|\.\.$)/ =~ file
 	
@@ -219,16 +202,12 @@ class Confgit
 					}
 				end
 			}
-		ensure
-			popdir()
-		end
+		}
 	end
 
 	# git に管理されているファイルを繰返す
-	def git_each(path = '.')
-		pushdir(path)
-
-		begin
+	def git_each(subdir = '.')
+		Dir.chdir(File.expand_path(subdir, @repo_path)) { |path|
 			open("| git ls-files") {|f|
 				while line = f.gets
 					file = line.chomp
@@ -238,9 +217,7 @@ class Confgit
 					yield(file)
 				end
 			}
-		ensure
-			popdir()
-		end
+		}
 	end
 
 	# パスを展開する
@@ -376,7 +353,6 @@ class Confgit
 
 	# 一覧表示する
 	def confgit_list(*args)
-
 		git_each { |file|
 			next if File.directory?(file)
 
@@ -398,15 +374,13 @@ class Confgit
 
 	# tree表示する
 	def confgit_tree(*args)
-		pushdir()
-
-		begin
-			system('tree', *args)
-		rescue => e
-			print e, "\n"
-		ensure
-			popdir()
-		end
+		Dir.chdir(@repo_path) { |path|
+			begin
+				system('tree', *args)
+			rescue => e
+				print e, "\n"
+			end
+		}
 	end
 
 	# カレントディレクトリを変更
