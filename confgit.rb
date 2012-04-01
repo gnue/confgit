@@ -206,6 +206,11 @@ class Confgit
 		options
 	end
 
+	# ファイルの更新チェック
+	def modfile?(from, to)
+		! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
+	end
+
 	# コマンド
 
 	# リポジトリの初期化
@@ -278,7 +283,7 @@ class Confgit
 				next
 			end
 
-			if force || ! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
+			if force || modfile?(from, to)
 				print "--> #{file}\n"
 				filecopy(from, to)
 			end
@@ -309,7 +314,7 @@ class Confgit
 				next
 			end
 
-			if force || ! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
+			if force || modfile?(from, to)
 				print "<-- #{file}\n"
 #				filecopy(from, to)
 			end
