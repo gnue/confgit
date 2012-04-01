@@ -232,6 +232,7 @@ class Confgit
 			open("| git ls-files") {|f|
 				while line = f.gets
 					file = line.chomp
+					next if /^\.git/ =~ file
 					next if File.directory?(file)
 
 					yield(file)
