@@ -184,12 +184,12 @@ class Confgit
 		begin
 			to_dir = File.dirname(to)
 			FileUtils.mkpath(to_dir)
-	
+
 			if File.exist?(to) && ! File.writable_real?(to)
 				# 書込みできない場合は削除を試みる
 				File.unlink(to)
 			end
-	
+
 			FileUtils.copy(from, to)
 			stat = File.stat(from)
 			File.utime(stat.atime, stat.mtime, to)
