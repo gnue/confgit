@@ -57,6 +57,9 @@ require 'json'
 
 
 class Confgit
+	COLOR		= "\e[31m"
+	COLOR_RESET	= "\e[0m"
+
 	def initialize(path = '~/.etc/confgit')
 		@base_path = File.expand_path(path)
 		@repos_path = File.join(@base_path, 'repos')
@@ -211,6 +214,12 @@ class Confgit
 		! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
 	end
 
+	def color_with(color = COLOR)
+		print COLOR
+		yield
+		print COLOR_RESET
+	end
+
 	# コマンド
 
 	# リポジトリの初期化
@@ -279,12 +288,12 @@ class Confgit
 			to = File.join(@repo_path, file)
 
 			unless File.exist?(from)
-				print "[?] #{file}\n"
+				color_with { print "[?] #{file}\n" }
 				next
 			end
 
 			if force || modfile?(from, to)
-				print "--> #{file}\n"
+				color_with { print "--> #{file}\n" }
 				filecopy(from, to)
 			end
 		}
@@ -310,12 +319,12 @@ class Confgit
 			to = File.join('/', file)
 
 			unless File.exist?(from)
-				print "[?] #{file}\n"
+				color_with { print "[?] #{file}\n" }
 				next
 			end
 
 			if force || modfile?(from, to)
-				print "<-- #{file}\n"
+				color_with { print "<-- #{file}\n" }
 #				filecopy(from, to)
 			end
 		}
