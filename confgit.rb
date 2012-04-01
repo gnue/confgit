@@ -56,7 +56,7 @@ require 'rubygems'
 require 'json'
 
 
-class Confgit
+module WithColor
 	ESC_CODES = {
 		# Text attributes
 		:clear		=> 0,
@@ -86,6 +86,28 @@ class Confgit
 		:bg_Cyan	=> 46,
 		:bg_White	=> 47,
 	}
+
+	# エスケープシーケンスをセットする
+	def set_color(*colors)
+		colors.each { |color|
+			print "\e[", ESC_CODES[color], "m"
+		}
+	end
+
+	# カラー表示する
+	def with_color(*colors)
+		begin
+			set_color(*colors)
+			yield
+		ensure
+			set_color(0)
+		end
+	end
+end
+
+
+class Confgit
+	include WithColor
 
 	def initialize(path = '~/.etc/confgit')
 		@base_path = File.expand_path(path)
@@ -239,21 +261,6 @@ class Confgit
 	# ファイルの更新チェック
 	def modfile?(from, to)
 		! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
-	end
-
-	# エスケープシーケンスをセットする
-	def set_color(color)
-		print "\e[", ESC_CODES[color], "m"
-	end
-
-	# カラー表示する
-	def color_with(color = :fg_red)
-		begin
-			set_color(color)
-			yield
-		ensure
-			set_color(0)
-		end
 	end
 
 	# コマンド
