@@ -57,8 +57,35 @@ require 'json'
 
 
 class Confgit
-	COLOR		= "\e[31m"
-	COLOR_RESET	= "\e[0m"
+	ESC_CODES = {
+		# Text attributes
+		:clear		=> 0,
+		:bold		=> 1,
+		:underscore => 4,
+		:blink		=> 5,
+		:reverse	=> 7,
+		:concealed	=> 8,
+
+		# Foreground colors
+		:fg_black	=> 30,
+		:fg_red 	=> 31,
+		:fg_green	=> 32,
+		:fg_yellow	=> 33,
+		:fg_blue	=> 34,
+		:fg_magenta	=> 35,
+		:fg_Cyan	=> 36,
+		:fg_White	=> 37,
+
+		# Background colors
+		:bg_black	=> 40,
+		:bg_red 	=> 41,
+		:bg_green	=> 42,
+		:bg_yellow	=> 43,
+		:bg_blue	=> 44,
+		:bg_magenta	=> 45,
+		:bg_Cyan	=> 46,
+		:bg_White	=> 47,
+	}
 
 	def initialize(path = '~/.etc/confgit')
 		@base_path = File.expand_path(path)
@@ -214,10 +241,19 @@ class Confgit
 		! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
 	end
 
-	def color_with(color = COLOR)
-		print COLOR
-		yield
-		print COLOR_RESET
+	# エスケープシーケンスをセットする
+	def set_color(color)
+		print "\e[", ESC_CODES[color], "m"
+	end
+
+	# カラー表示する
+	def color_with(color = :fg_red)
+		begin
+			set_color(color)
+			yield
+		ensure
+			set_color(0)
+		end
 	end
 
 	# コマンド
@@ -288,12 +324,12 @@ class Confgit
 			to = File.join(@repo_path, file)
 
 			unless File.exist?(from)
-				color_with { print "[?] #{file}\n" }
+				with_color(:fg_red) { print "[?] #{file}\n" }
 				next
 			end
 
 			if force || modfile?(from, to)
-				color_with { print "--> #{file}\n" }
+				with_color(:fg_blue) { print "--> #{file}\n" }
 				filecopy(from, to)
 			end
 		}
@@ -319,12 +355,12 @@ class Confgit
 			to = File.join('/', file)
 
 			unless File.exist?(from)
-				color_with { print "[?] #{file}\n" }
+				with_color(:fg_red) { print "[?] #{file}\n" }
 				next
 			end
 
 			if force || modfile?(from, to)
-				color_with { print "<-- #{file}\n" }
+				with_color(:fg_blue) { print "<-- #{file}\n" }
 #				filecopy(from, to)
 			end
 		}
