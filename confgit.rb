@@ -208,7 +208,7 @@ class Confgit
 	# git に管理されているファイルを繰返す
 	def git_each(subdir = '.')
 		Dir.chdir(File.expand_path(subdir, @repo_path)) { |path|
-			open("| git ls-files") {|f|
+			open("| git ls-files --full-name") {|f|
 				while line = f.gets
 					file = line.chomp
 					next if /^\.git/ =~ file
