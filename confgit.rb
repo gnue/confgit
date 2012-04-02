@@ -40,7 +40,6 @@ confgit.rb
 
 == TODO
 
-* 更新確認を hash で行う（現在は日付で確認）
 * user/group の情報を保存
 * user/group の情報を復元
 * リストアで実際のファイルコピーを行えるようにする
@@ -164,6 +163,14 @@ class Confgit
 		}
 	end
 
+	# ファイルの hash値を求める
+	def hash_object(file)
+		path = File.expand_path(file)
+		open("| git hash-object \"#{path}\"") {|f|
+			return f.gets.chomp
+		}
+	end
+
 	# ファイルのコピー（属性は維持する）
 	def filecopy(from, to)
 		begin
@@ -240,7 +247,7 @@ class Confgit
 
 	# ファイルの更新チェック
 	def modfile?(from, to)
-		! File.exist?(to) || File.stat(from).mtime > File.stat(to).mtime
+		! File.exist?(to) || hash_object(from) != hash_object(to)
 	end
 
 	# コマンド
