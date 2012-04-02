@@ -208,13 +208,15 @@ class Confgit
 	# git に管理されているファイルを繰返す
 	def git_each(subdir = '.')
 		Dir.chdir(File.expand_path(subdir, @repo_path)) { |path|
-			open("| git ls-files --full-name") {|f|
+			open("| git ls-files --stage --full-name") {|f|
 				while line = f.gets
-					file = line.chomp
+					mode, hash, stage, file = line.split
+
+#					file = line.chomp
 					next if /^\.git/ =~ file
 					next if File.directory?(file)
 
-					yield(file)
+					yield(file, hash)
 				end
 			}
 		}
@@ -302,7 +304,7 @@ class Confgit
 		rescue
 		end
 
-		git_each { |file|
+		git_each { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join('/', file)
@@ -333,7 +335,7 @@ class Confgit
 		rescue
 		end
 
-		git_each { |file|
+		git_each { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join(@repo_path, file)
@@ -353,7 +355,7 @@ class Confgit
 
 	# 一覧表示する
 	def confgit_list(*args)
-		git_each { |file|
+		git_each { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join('/', file)
