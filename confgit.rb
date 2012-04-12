@@ -16,6 +16,7 @@
   $ confgit.rb restore					# リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
   $ confgit.rb restore -f				# 強制リストア（まだ実際のファイルコピーは行えません）
   $ confgit.rb tree						# ツリー表示（要treeコマンド）
+  $ confgit.rb tig						# tigで表示（要tigコマンド）
   $ confgit.rb pwd						# リポジトリのパスを表示
 
 == ディレクトリ構造
@@ -386,6 +387,17 @@ class Confgit
 		Dir.chdir(@repo_path) { |path|
 			begin
 				system('tree', *args)
+			rescue => e
+				print e, "\n"
+			end
+		}
+	end
+
+	# tig で表示する
+	def confgit_tig(*args)
+		Dir.chdir(@repo_path) { |path|
+			begin
+				system('tig', *args)
 			rescue => e
 				print e, "\n"
 			end
