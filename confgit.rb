@@ -20,6 +20,7 @@
   $ confgit.rb tree						# ツリー表示（要treeコマンド）
   $ confgit.rb tig						# tigで表示（要tigコマンド）
   $ confgit.rb pwd						# リポジトリのパスを表示
+  $ confgit.rb list						# 一覧表示
 
 == ディレクトリ構造
 
