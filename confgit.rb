@@ -289,6 +289,45 @@ class Confgit
 		! File.exist?(to) || hash_object(from) != hash_object(to)
 	end
 
+	# ファイル属性を文字列にする
+	def mode2str(bits)
+		case bits & 0170000	# S_IFMT
+		when 0010000	# S_IFIFO	パイプ
+			mode = 'p'
+		when 0020000	# S_IFCHR	キャラクタ・デバイス
+			mode = 'c'
+		when 0040000	# S_IFDIR	ディレクトリ
+			mode = 'd'
+		when 0060000	# S_IFBLK	ブロック・デバイス
+			mode = 'b'
+		when 0100000	# S_IFREG	通常ファイル
+			mode = '-'
+		when 0120000	# S_IFLNK	シンボリックリンク
+			mode = 'l'
+		when 0140000	# S_IFSOCK	ソケット
+			mode = 's'
+		when 0160000	# S_IFWHT	BSD空白ファイル
+			mode = 'w'
+		end
+
+		mode += 'rwx'*3
+
+		(0..8).each { |i| 
+			mask = 1<<i
+			mode[-(i+1)] = '-' if (bits & mask) == 0
+		}
+
+		if (bits & 0001000) != 0	# S_ISVTX	スティッキービット
+			if mode[-1] == '-'
+				mode[-1] = 'T'
+			else
+				mode[-1] = 't'
+			end
+		end
+
+		mode
+	end
+
 	# コマンド
 
 	# カレントリポジトリの表示・変更
@@ -438,14 +477,16 @@ class Confgit
 
 			if File.exist?(from)
 				stat = File.stat(from)
+				mode = mode2str(stat.mode)
 				user = Etc.getpwuid(stat.uid).name
 				group = Etc.getgrgid(stat.gid).name
 			else
+				mode = '-'
 				user = '-'
 				group = '-'
 			end
 
-			print "#{user}\t#{group}\t#{from}\n"
+			print "#{mode}\t#{user}\t#{group}\t#{from}\n"
 		}
 	end
 
