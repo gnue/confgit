@@ -8,6 +8,8 @@
 
 == 使い方
 
+  $ confgit.rb repo						# リポジトリ一覧の表示
+  $ confgit.rb repo	リポジトリ名			# カレントリポジトリの変更
   $ confgit.rb add ファイル名				# ファイルを追加
   $ confgit.rb rm ファイル名				# ファイルを削除
   $ confgit.rb rm -rf ディレクトリ名		# ディレクトリを削除
@@ -24,6 +26,7 @@
   ~/.etc/confgit
   ├── confgit.conf			-- 設定ファイル
   └── repos
+      ├── current			-- カレントリポジトリへのシンボリックリンク
       └── `hostname`		-- リポジトリ（デフォルト）
 
 == 設定ファイル
@@ -31,7 +34,6 @@
 confgit.rb
 
   {
-     "repo":	"hostname",		// リポジトリの場所（デフォルトは hostname が設定される）
   }
 
 == 動作環境
@@ -113,16 +115,38 @@ class Confgit
 		@base_path = File.expand_path(path)
 		@repos_path = File.join(@base_path, 'repos')
 
-#		FileUtils.mkpath(@base_path)
 		FileUtils.mkpath(@repos_path)
 
 		@config = read_config(File.join(@base_path, 'confgit.conf'))
-		@repo_path = File.expand_path(@config['repo'], @repos_path)
+		@repo_path = File.expand_path('current', @repos_path)
+
+		chrepo(hostname) unless File.symlink?(@repo_path)
+	end
+
+	# ホスト名
+	def hostname
+		`hostname`.chop
+	end
+
+	# リポジトリの変更
+	def chrepo(repo)
+		Dir.chdir(@repos_path) { |path|
+			begin
+				if File.symlink?('current')
+					return if File.readlink('current') == repo
+					File.unlink('current')
+				end
+
+				File.symlink(repo, 'current') 
+			rescue => e
+				print e, "\n"
+			end
+		}
 	end
 
 	# 設定の初期値
 	def default_config
-		{'repo' => `hostname`.chop}
+		{}
 	end
 
 	# 設定の読込み
@@ -267,6 +291,33 @@ class Confgit
 
 	# コマンド
 
+	# カレントリポジトリの表示・変更
+	def confgit_repo(*args)
+		if args.length == 0
+			Dir.chdir(@repos_path) { |path|
+#				current = File.realpath('current')
+				current = File.expand_path(File.readlink('current'))
+
+				Dir.glob('*') { |file|
+					next if /^current$/ =~ file
+
+					if current && File.realpath(file) == current
+						mark = '*'
+						current = nil
+					else
+						mark = ' '
+					end
+
+					print "#{mark} #{file}\n"
+				}
+
+				print "* ", File.readlink('current'), "\n" if current
+			}
+		else
+			chrepo(args[0])
+		end
+	end
+
 	# リポジトリの初期化
 	def confgit_init
 		FileUtils.mkpath(@repo_path)
@@ -276,6 +327,7 @@ class Confgit
 	# ファイルを管理対象に追加
 	def confgit_add(*files)
 		confgit_init unless File.exist?(@repo_path)
+		repo = File.realpath(@repo_path)
 
 		files.each { |path|
 			path = expand_path(path)
@@ -285,7 +337,7 @@ class Confgit
 					next if File.directory?(file)
 	
 					from = File.join(path, file)
-					to = File.join(@repo_path, from)
+					to = File.join(repo, from)
 	
 					if filecopy(from, to)
 						git('add', to)
@@ -293,7 +345,7 @@ class Confgit
 				}
 			else
 				from = path
-				to = File.join(@repo_path, from)
+				to = File.join(repo, from)
 
 				if filecopy(from, to)
 					git('add', to)
@@ -307,9 +359,10 @@ class Confgit
 		return unless File.exist?(@repo_path)
 
 		options = getopts(args)
+		repo = File.realpath(@repo_path)
 
 		files = args.collect { |from|
-			File.join(@repo_path, expand_path(from))
+			File.join(repo, expand_path(from))
 		}
 
 		git('rm', *options, *files)
