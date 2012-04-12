@@ -137,6 +137,20 @@ class Confgit
 		return config
 	end
 
+	# 外部コマンドを定義する
+	def self.define_command(command)
+		define_method "confgit_#{command}" do |*args|
+			Dir.chdir(@repo_path) { |path|
+				begin
+					system(command, *args)
+				rescue => e
+					print e, "\n"
+				end
+			}
+		end
+	end
+
+	# メソッドがない場合
 	def method_missing(name, *args, &block)
 		if name.to_s =~ /^confgit_(.+)$/
 			command = $1.gsub(/_/, '-')
@@ -382,33 +396,14 @@ class Confgit
 		}
 	end
 
-	# tree表示する
-	def confgit_tree(*args)
-		Dir.chdir(@repo_path) { |path|
-			begin
-				system('tree', *args)
-			rescue => e
-				print e, "\n"
-			end
-		}
-	end
-
-	# tig で表示する
-	def confgit_tig(*args)
-		Dir.chdir(@repo_path) { |path|
-			begin
-				system('tig', *args)
-			rescue => e
-				print e, "\n"
-			end
-		}
-	end
-
 	# カレントディレクトリを変更
 	def confgit_pwd(subdir = '.')
 		print File.expand_path(subdir, @repo_path), "\n"
 	end
 
+	# 外部コマンド
+	define_command('tree')	# tree表示する
+	define_command('tig')	# tigで表示する
 end
 
 
