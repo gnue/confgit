@@ -162,12 +162,13 @@ class Confgit
 		return config
 	end
 
+	opts = ['-I', '.git']
 	# 外部コマンドを定義する
-	def self.define_command(command)
+	def self.define_command(command, *opts)
 		define_method "confgit_#{command}" do |*args|
 			Dir.chdir(@repo_path) { |path|
 				begin
-					system(command, *args)
+					system(command, *opts, *args)
 				rescue => e
 					print e, "\n"
 				end
@@ -497,8 +498,8 @@ class Confgit
 	end
 
 	# 外部コマンド
-	define_command('tree')	# tree表示する
-	define_command('tig')	# tigで表示する
+	define_command('tree', '-I', '.git')	# tree表示する
+	define_command('tig')					# tigで表示する
 end
 
 
