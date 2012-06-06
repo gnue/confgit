@@ -169,7 +169,7 @@ class Confgit
 		define_method "confgit_#{command}" do |*args|
 			Dir.chdir(@repo_path) { |path|
 				begin
-					system(command, *opts, *args)
+					system(command, *(opts + args))
 				rescue => e
 					print e, "\n"
 				end
@@ -407,7 +407,7 @@ class Confgit
 			File.join(repo, expand_path(from))
 		}
 
-		git('rm', *options, *files)
+		git('rm', *(options + files))
 	end
 
 	# バックアップする
