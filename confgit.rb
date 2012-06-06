@@ -138,6 +138,7 @@ class Confgit
 					File.unlink('current')
 				end
 
+				FileUtils.mkpath(repo)
 				File.symlink(repo, 'current') 
 			rescue => e
 				print e, "\n"
