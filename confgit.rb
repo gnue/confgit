@@ -505,26 +505,19 @@ end
 
 
 if __FILE__ == $0
-	CMD = File.basename $0
-
-	# 使い方
-	def usage
-		abort "Usage: #{CMD} [--help] <command> [<args>]\n"
-	end
-
 	# コマンド引数の解析
 	config = {}
+	command = nil
 
-	begin
-		opts = OptionParser.new
-		opts.on('--help')			{ usage }
+	OptionParser.new { |opts|
+		opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
+
+		opts.on('-h', '--help')	{ abort opts.help }
 		opts.order!(ARGV)
-	rescue
-		usage
-	end
 
-	command = ARGV.shift
-	usage unless command
+		command = ARGV.shift
+		abort opts.help unless command
+	}
 
 	confgit = Confgit.new
 	confgit.action(command, *ARGV)
