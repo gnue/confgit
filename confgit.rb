@@ -525,9 +525,11 @@ if __FILE__ == $0
 		begin
 			opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
 
-			opts.on('-h', '--help')	{ abort opts.help }
-			opts.order!(ARGV)
+			opts.on('-h', '--help', 'Show this message')	{ abort opts.help }
+			opts.separator ''
+			opts.separator DATA.read
 
+			opts.order!(ARGV)
 			command = ARGV.shift
 			abort opts.help unless command
 		rescue
@@ -538,3 +540,18 @@ if __FILE__ == $0
 	confgit = Confgit.new
 	confgit.action(command, *ARGV)
 end
+
+
+__END__
+commands:
+    repo                             リポジトリ一覧の表示
+    repo REPO                        カレントリポジトリの変更
+    add FILE…                        ファイルを追加
+    rm FILE…                         ファイルを削除
+    rm -rf DIRECTORY                 ディレクトリを削除
+    backup                           バックアップ（更新されたもののみ）
+    restore                          リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
+    tree                             ツリー表示（要treeコマンド）
+    tig                              tigで表示（要tigコマンド）
+    pwd                              リポジトリのパスを表示
+    list                             一覧表示
