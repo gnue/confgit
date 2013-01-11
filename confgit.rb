@@ -496,7 +496,7 @@ class Confgit
 				user = Etc.getpwuid(stat.uid).name
 				group = Etc.getgrgid(stat.gid).name
 			else
-				mode = '-'
+				mode = ' '*10
 				user = '-'
 				group = '-'
 			end
