@@ -19,7 +19,7 @@
   $ confgit.rb restore -f				# 強制リストア（まだ実際のファイルコピーは行えません）
   $ confgit.rb tree						# ツリー表示（要treeコマンド）
   $ confgit.rb tig						# tigで表示（要tigコマンド）
-  $ confgit.rb pwd						# リポジトリのパスを表示
+  $ confgit.rb path						# リポジトリのパスを表示
   $ confgit.rb list						# 一覧表示
 
 == ディレクトリ構造
@@ -524,8 +524,9 @@ class Confgit
 	end
 
 	# リポジトリのパスを表示
-	def confgit_pwd(subdir = '.')
-		print File.expand_path(subdir, @repo_path), "\n"
+	def confgit_path(subdir = '.')
+		path = File.realpath(File.expand_path(subdir, @repo_path))
+		print path, "\n"
 	end
 
 	# 外部コマンド
@@ -571,5 +572,5 @@ commands:
     restore                          リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
     tree                             ツリー表示（要treeコマンド）
     tig                              tigで表示（要tigコマンド）
-    pwd                              リポジトリのパスを表示
+    path                             リポジトリのパスを表示
     list                             一覧表示
