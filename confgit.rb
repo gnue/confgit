@@ -53,6 +53,7 @@ confgit.rb
 
 require 'optparse'
 require 'fileutils'
+require 'pathname'
 require 'etc'
 
 require 'rubygems'
@@ -167,6 +168,8 @@ class Confgit
 	# 外部コマンドを定義する
 	def self.define_command(command, *opts)
 		define_method "confgit_#{command}" do |*args|
+			args = getargs(args)
+
 			Dir.chdir(@repo_path) { |path|
 				begin
 					system(command, *(opts + args))
@@ -192,6 +195,21 @@ class Confgit
 	def action(command, *args)
 		command = command.gsub(/-/, '_')
 		send "confgit_#{command}", *args
+	end
+
+	# 引数を利用可能にする
+	def getargs(args)
+		args.map { |x|
+			case x
+			when /^-/
+			when /\//
+				repo = File.realpath(@repo_path)
+				path = File.join(repo, expand_path(x))
+				x = Pathname(path).relative_path_from(Pathname(repo)).to_s
+			end
+
+			x
+		}
 	end
 
 	# git を呼出す
