@@ -505,7 +505,7 @@ class Confgit
 		}
 	end
 
-	# カレントディレクトリを変更
+	# リポジトリのパスを表示
 	def confgit_pwd(subdir = '.')
 		print File.expand_path(subdir, @repo_path), "\n"
 	end
