@@ -55,6 +55,7 @@ require 'optparse'
 require 'fileutils'
 require 'pathname'
 require 'etc'
+require 'shellwords'
 
 require 'rubygems'
 require 'json'
@@ -273,9 +274,12 @@ class Confgit
 	end
 
 	# git に管理されているファイルを繰返す
-	def git_each(subdir = '.')
-		Dir.chdir(File.expand_path(subdir, @repo_path)) { |path|
-			open("| git ls-files --stage --full-name") {|f|
+	def git_each(*args)
+		args = getargs(args)
+		files = args.collect { |f| f.shellescape }
+
+		Dir.chdir(@repo_path) { |path|
+			open("| git ls-files --stage --full-name " + files.join(' ')) {|f|
 				while line = f.gets
 					mode, hash, stage, file = line.split
 
@@ -436,7 +440,7 @@ class Confgit
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [<args>]"
+				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
@@ -445,7 +449,7 @@ class Confgit
 			end
 		}
 
-		git_each { |file, hash|
+		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join('/', file)
@@ -473,7 +477,7 @@ class Confgit
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [<args>]"
+				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
@@ -482,7 +486,7 @@ class Confgit
 			end
 		}
 
-		git_each { |file, hash|
+		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join(@repo_path, file)
@@ -507,15 +511,13 @@ class Confgit
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [<args>]"
+				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
 				opts.on('-8', 'mode display octal')	{ octal = true }
 				opts.order!(args)
 			rescue
 				abort opts.help
 			end
 		}
-
-		args = getargs(args)
 
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
