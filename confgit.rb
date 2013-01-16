@@ -502,6 +502,19 @@ class Confgit
 
 	# 一覧表示する
 	def confgit_list(*args)
+		cmd = 'list'
+		octal = false
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = "Usage: #{opts.program_name} #{cmd} [<args>]"
+				opts.on('-8', 'mode display octal')	{ octal = true }
+				opts.order!(args)
+			rescue
+				abort opts.help
+			end
+		}
+
 		git_each { |file, hash|
 			next if File.directory?(file)
 
@@ -510,11 +523,11 @@ class Confgit
 
 			if File.exist?(from)
 				stat = File.stat(from)
-				mode = mode2str(stat.mode)
+				mode = octal ? stat.mode.to_s(8) : mode2str(stat.mode)
 				user = Etc.getpwuid(stat.uid).name
 				group = Etc.getgrgid(stat.gid).name
 			else
-				mode = ' '*10
+				mode = ' ' * (octal ? 6 : 10)
 				user = '-'
 				group = '-'
 			end
