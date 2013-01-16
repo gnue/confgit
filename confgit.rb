@@ -200,7 +200,7 @@ class Confgit
 
 	# 引数を利用可能にする
 	def getargs(args)
-		args.map { |x|
+		args.collect { |x|
 			case x
 			when /^-/
 			when /\//
