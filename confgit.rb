@@ -515,7 +515,9 @@ class Confgit
 			end
 		}
 
-		git_each { |file, hash|
+		args = getargs(args)
+
+		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
 			from = File.join('/', file)
