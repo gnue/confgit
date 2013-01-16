@@ -199,13 +199,21 @@ class Confgit
 	end
 
 	# 引数を利用可能にする
-	def getargs(args)
+	def getargs(args, force = false)
 		args.collect { |x|
+			run = false
+
 			case x
 			when /^-/
 			when /\//
+				run = true
+			else
+				run = force
+			end
+
+			if run
 				repo = File.realpath(@repo_path)
-				path = File.join(repo, expand_path(x))
+				path = File.join(repo, x)
 				x = Pathname(path).relative_path_from(Pathname(repo)).to_s
 			end
 
@@ -275,7 +283,7 @@ class Confgit
 
 	# git に管理されているファイルを繰返す
 	def git_each(*args)
-		args = getargs(args)
+		args = getargs(args, true)
 		files = args.collect { |f| f.shellescape }
 
 		Dir.chdir(@repo_path) { |path|
