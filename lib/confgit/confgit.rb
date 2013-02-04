@@ -183,7 +183,7 @@ EOD
 				FileUtils.mkpath(repo)
 				File.symlink(repo, 'current') 
 			rescue => e
-				print e, "\n"
+				abort e.to_s
 			end
 		}
 	end
@@ -199,7 +199,7 @@ EOD
 
 				FileUtils.rmtree(repo)
 			rescue => e
-				print e, "\n"
+				abort e.to_s
 			end
 		}
 	end
@@ -231,7 +231,7 @@ EOD
 				begin
 					system(command, *(opts + args))
 				rescue => e
-					print e, "\n"
+					abort e.to_s
 				end
 			}
 		end
@@ -283,7 +283,7 @@ EOD
 			begin
 				system('git', *args);
 			rescue => e
-				print e, "\n"
+				abort e.to_s
 			end
 		}
 	end
@@ -314,7 +314,7 @@ EOD
 
 			return true
 		rescue => e
-			print e, "\n"
+			abort e.to_s
 		end
 	end
 
