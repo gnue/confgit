@@ -401,6 +401,12 @@ EOD
 		mode
 	end
 
+	# サブコマンド・オプションのバナー作成
+	def banner(opts, method, *args)
+		subcmd = method.to_s.gsub(/^.+_/, '')
+		["Usage: #{opts.program_name} #{subcmd}", *args].join(' ')
+	end
+
 	# コマンド
 
 	# カレントリポジトリの表示・変更
@@ -482,13 +488,12 @@ EOD
 
 	# バックアップする
 	def confgit_backup(*args)
-		cmd = 'backup'
 		dryrun = false
 		force = false
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
@@ -519,13 +524,12 @@ EOD
 
 	# リストアする
 	def confgit_restore(*args)
-		cmd = 'restore'
 		dryrun = false
 		force = false
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
@@ -554,12 +558,11 @@ EOD
 
 	# 一覧表示する
 	def confgit_list(*args)
-		cmd = 'list'
 		octal = false
 
 		OptionParser.new { |opts|
 			begin
-				opts.banner = "Usage: #{opts.program_name} #{cmd} [options] [<file>...]"
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-8', 'mode display octal')	{ octal = true }
 				opts.order!(args)
 			rescue
