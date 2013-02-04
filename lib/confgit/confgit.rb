@@ -411,6 +411,15 @@ EOD
 
 	# カレントリポジトリの表示・変更
 	def confgit_repo(*args)
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '[options] [<repo>]')
+				opts.order!(args)
+			rescue => e
+				abort e.to_s
+			end
+		}
+
 		if args.length == 0
 			Dir.chdir(@repos_path) { |path|
 #				current = File.realpath('current')
@@ -444,6 +453,17 @@ EOD
 
 	# ファイルを管理対象に追加
 	def confgit_add(*files)
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '<file>…')
+				opts.order!(files)
+
+				abort opts.help if files.empty?
+			rescue => e
+				abort e.to_s
+			end
+		}
+
 		confgit_init unless File.exist?(@repo_path)
 		repo = File.realpath(@repo_path)
 
