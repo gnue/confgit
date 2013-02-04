@@ -414,7 +414,7 @@ EOD
 		OptionParser.new { |opts|
 			begin
 				opts.banner = banner(opts, __method__, '[options] [<repo>]')
-				opts.order!(args)
+				opts.parse!(args)
 			rescue => e
 				abort e.to_s
 			end
@@ -456,7 +456,7 @@ EOD
 		OptionParser.new { |opts|
 			begin
 				opts.banner = banner(opts, __method__, '<file>…')
-				opts.order!(files)
+				opts.parse!(files)
 
 				abort opts.help if files.empty?
 			rescue => e
@@ -516,7 +516,7 @@ EOD
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
-				opts.order!(args)
+				opts.parse!(args)
 			rescue => e
 				abort e.to_s
 			end
@@ -552,7 +552,7 @@ EOD
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
-				opts.order!(args)
+				opts.parse!(args)
 			rescue => e
 				abort e.to_s
 			end
@@ -584,7 +584,7 @@ EOD
 			begin
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-8', 'mode display octal')	{ octal = true }
-				opts.order!(args)
+				opts.parse!(args)
 			rescue => e
 				abort e.to_s
 			end
