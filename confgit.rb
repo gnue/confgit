@@ -114,6 +114,46 @@ end
 class Confgit
 	include WithColor
 
+	COMMANDS = <<EOD
+commands:
+    repo                             リポジトリ一覧の表示
+    repo REPO                        カレントリポジトリの変更
+    add FILE…                        ファイルを追加
+    rm FILE…                         ファイルを削除
+    rm -rf DIRECTORY                 ディレクトリを削除
+    backup                           バックアップ（更新されたもののみ）
+    restore                          リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
+    tree                             ツリー表示（要treeコマンド）
+    tig                              tigで表示（要tigコマンド）
+    path                             リポジトリのパスを表示
+    list                             一覧表示
+EOD
+
+	def self.run(argv = ARGV)
+		# コマンド引数の解析
+		options = {}
+		command = nil
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
+
+				opts.on('-h', '--help', 'Show this message')	{ abort opts.help }
+				opts.separator ''
+				opts.separator COMMANDS
+
+				opts.order!(argv)
+				command = argv.shift
+				abort opts.help unless command
+			rescue
+				abort opts.help
+			end
+		}
+
+		confgit = Confgit.new
+		confgit.action(command, *argv)
+	end
+
 	def initialize(path = '~/.etc/confgit')
 		@base_path = File.expand_path(path)
 		@repos_path = File.join(@base_path, 'repos')
@@ -561,41 +601,5 @@ end
 
 
 if __FILE__ == $0
-	# コマンド引数の解析
-	config = {}
-	command = nil
-
-	OptionParser.new { |opts|
-		begin
-			opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
-
-			opts.on('-h', '--help', 'Show this message')	{ abort opts.help }
-			opts.separator ''
-			opts.separator DATA.read
-
-			opts.order!(ARGV)
-			command = ARGV.shift
-			abort opts.help unless command
-		rescue
-			abort opts.help
-		end
-	}
-
-	confgit = Confgit.new
-	confgit.action(command, *ARGV)
+	Confgit.run
 end
-
-
-__END__
-commands:
-    repo                             リポジトリ一覧の表示
-    repo REPO                        カレントリポジトリの変更
-    add FILE…                        ファイルを追加
-    rm FILE…                         ファイルを削除
-    rm -rf DIRECTORY                 ディレクトリを削除
-    backup                           バックアップ（更新されたもののみ）
-    restore                          リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
-    tree                             ツリー表示（要treeコマンド）
-    tig                              tigで表示（要tigコマンド）
-    path                             リポジトリのパスを表示
-    list                             一覧表示
