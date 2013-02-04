@@ -1,16 +1,27 @@
-# xcode noise
-build/*
-*.pbxuser
-*.mode1v3
+*.gem
+*.rbc
+.bundle
+.config
+.yardoc
+Gemfile.lock
+InstalledFiles
+_yardoc
+coverage
+doc/
+lib/bundler/man
+pkg
+rdoc
+spec/reports
+test/tmp
+test/version_tmp
+tmp
 
-# Xcode 4
-xcuserdata/
-project.xcworkspace/
+# editor noise
+*~
 
 # old skool
 .svn
 
 # osx noise
 .DS_Store
-profile
 Icon
