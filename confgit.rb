@@ -32,7 +32,7 @@
 
 == 設定ファイル
 
-confgit.rb
+confgit.conf
 
   {
   }
