@@ -188,6 +188,22 @@ EOD
 		}
 	end
 
+	# リポジトリの削除
+	def rmrepo(repo, force = false)
+		Dir.chdir(@repos_path) { |path|
+			begin
+				if File.symlink?('current') && File.readlink('current') == repo
+					abort "'#{repo}' is current repository!" unless force
+					File.unlink('current')
+				end
+
+				FileUtils.rmtree(repo)
+			rescue => e
+				print e, "\n"
+			end
+		}
+	end
+
 	# 設定の初期値
 	def default_config
 		{}
@@ -411,9 +427,16 @@ EOD
 
 	# カレントリポジトリの表示・変更
 	def confgit_repo(*args)
+		options = {}
+
 		OptionParser.new { |opts|
 			begin
 				opts.banner = banner(opts, __method__, '[options] [<repo>]')
+				opts.on('-d', 'remove repo') { options[:remove] = true }
+				opts.on('-D', 'remove repo (even if current repository)') {
+						options[:remove] = true
+						options[:force] = true
+					}
 				opts.parse!(args)
 			rescue => e
 				abort e.to_s
@@ -441,7 +464,13 @@ EOD
 				print "* ", File.readlink('current'), "\n" if current
 			}
 		else
-			chrepo(args[0])
+			repo = args.first
+
+			if options[:remove]
+				rmrepo(repo, options[:force])
+			else
+				chrepo(repo)
+			end
 		end
 	end
 
