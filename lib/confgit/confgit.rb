@@ -145,8 +145,8 @@ EOD
 				opts.order!(argv)
 				command = argv.shift
 				abort opts.help unless command
-			rescue
-				abort opts.help
+			rescue => e
+				abort e.to_s
 			end
 		}
 
@@ -497,8 +497,8 @@ EOD
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
-			rescue
-				abort opts.help
+			rescue => e
+				abort e.to_s
 			end
 		}
 
@@ -533,8 +533,8 @@ EOD
 				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.order!(args)
-			rescue
-				abort opts.help
+			rescue => e
+				abort e.to_s
 			end
 		}
 
@@ -565,8 +565,8 @@ EOD
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
 				opts.on('-8', 'mode display octal')	{ octal = true }
 				opts.order!(args)
-			rescue
-				abort opts.help
+			rescue => e
+				abort e.to_s
 			end
 		}
 
