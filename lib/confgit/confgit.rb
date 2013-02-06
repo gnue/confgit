@@ -163,12 +163,24 @@ EOD
 		@config = read_config(File.join(@base_path, 'confgit.conf'))
 		@repo_path = File.expand_path('current', @repos_path)
 
-		chrepo(hostname) unless File.symlink?(@repo_path)
+		valid_repo unless File.symlink?(@repo_path)
 	end
 
 	# ホスト名
 	def hostname
 		`hostname`.chop
+	end
+
+	# カレントリポジトリがない場合の処理
+	def valid_repo
+		repo = nil
+
+		repo_each { |file, is_current|
+			repo = file
+			break
+		}
+
+		chrepo(repo || hostname)
 	end
 
 	# リポジトリの変更
@@ -198,6 +210,8 @@ EOD
 				end
 
 				FileUtils.rmtree(repo)
+
+				valid_repo unless File.symlink?('current')
 			rescue => e
 				abort e.to_s
 			end
