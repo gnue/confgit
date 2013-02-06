@@ -357,6 +357,31 @@ EOD
 		}
 	end
 
+	# リポジトリを繰返す
+	def repo_each
+		Dir.chdir(@repos_path) { |path|
+			begin
+				current = File.expand_path(File.readlink('current'))
+			rescue
+			end
+
+			Dir.glob('*') { |file|
+				next if /^current$/ =~ file
+
+				if current && File.realpath(file) == current
+					is_current = true
+					current = nil
+				else
+					is_current = false
+				end
+
+				yield(file, is_current)
+			}
+
+			yield(File.readlink('current'), true) if current
+		}
+	end
+
 	# パスを展開する
 	def expand_path(path, dir = nil)
 		File.expand_path(path, dir).gsub(%r|^/private/|, '/')
@@ -444,24 +469,9 @@ EOD
 		}
 
 		if args.length == 0
-			Dir.chdir(@repos_path) { |path|
-#				current = File.realpath('current')
-				current = File.expand_path(File.readlink('current'))
-
-				Dir.glob('*') { |file|
-					next if /^current$/ =~ file
-
-					if current && File.realpath(file) == current
-						mark = '*'
-						current = nil
-					else
-						mark = ' '
-					end
-
-					print "#{mark} #{file}\n"
-				}
-
-				print "* ", File.readlink('current'), "\n" if current
+			repo_each { |file, is_current|
+				mark = is_current ? '*' : ' '
+				print "#{mark} #{file}\n"
 			}
 		else
 			repo = args.first
