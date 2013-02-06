@@ -192,7 +192,19 @@ EOD
 					File.unlink('current')
 				end
 
-				FileUtils.mkpath(repo)
+				unless File.exist?(repo)
+					FileUtils.mkpath(repo)
+
+					Dir.chdir(repo) { |path|
+						begin
+							system('git', 'init');
+						rescue => e
+							FileUtils.rmtree(repo)
+							abort e.to_s
+						end
+					}
+				end
+
 				File.symlink(repo, 'current') 
 			rescue => e
 				abort e.to_s
