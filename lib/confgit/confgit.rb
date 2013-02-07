@@ -180,102 +180,63 @@ EOD
 		["Usage: #{opts.program_name} #{subcmd}", *args].join(' ')
 	end
 
+	# オプション解析を定義する
+	def self.define_options(command, *banner, &block)
+		define_method "options_#{command}" do |argv|
+			options = {}
+
+			OptionParser.new { |opts|
+				begin
+					opts.banner = banner(opts, command, *banner)
+					block.call(opts, argv, options)
+				rescue => e
+					abort e.to_s
+				end
+			}
+
+			options
+		end
+	end
 
 	# オプション解析
 
 	# カレントリポジトリの表示・変更
-	def options_repo(argv)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<repo>]')
-				opts.on('-d', 'remove repo') { options[:remove] = true }
-				opts.on('-D', 'remove repo (even if current repository)') {
-						options[:remove] = true
-						options[:force] = true
-					}
-				opts.parse!(argv)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
-		options
-	end
+	define_options(:repo, '[options] [<repo>]') { |opts, argv, options|
+		opts.on('-d', 'remove repo') { options[:remove] = true }
+		opts.on('-D', 'remove repo (even if current repository)') {
+				options[:remove] = true
+				options[:force] = true
+			}
+		opts.parse!(argv)
+	}
 
 	# ファイルを管理対象に追加
-	def options_add(argv)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '<file>…')
-				opts.parse!(argv)
-
-				abort opts.help if argv.empty?
-			rescue => e
-				abort e.to_s
-			end
-		}
-
-		options
-	end
+	define_options(:add, '<file>…') { |opts, argv, options|
+		opts.parse!(argv)
+		abort opts.help if argv.empty?
+	}
 
 	# バックアップする
-	def options_backup(argv)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
-				opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
-				opts.on('-f', 'force')					{ options[:force] = true }
-				opts.parse!(argv)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
-		options
-	end
+	define_options(:backup, '[options] [<file>…]') { |opts, argv, options|
+		opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
+		opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
+		opts.on('-f', 'force')					{ options[:force] = true }
+		opts.parse!(argv)
+	}
 
 	# リストアする
-	def options_restore(argv)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
-				opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
-				opts.on('-f', 'force')					{ options[:force] = true }
-				opts.parse!(argv)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
-		options
-	end
+	define_options(:restore, '[options] [<file>…]') { |opts, argv, options|
+		opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
+		opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
+		opts.on('-f', 'force')					{ options[:force] = true }
+		opts.parse!(argv)
+	}
 
 	# 一覧表示する
-	def options_list(argv)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-8', 'mode display octal')	{ options[:octal] = true }
-				opts.parse!(argv)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
-		options
-	end
+	define_options(:list, '[options] [<file>…]') { |opts, argv, options|
+		opts.on('-8', 'mode display octal')	{ options[:octal] = true }
+		opts.parse!(argv)
+	}
 end
 
 
