@@ -130,6 +130,8 @@ commands:
 EOD
 
 	def self.run(argv = ARGV)
+		trap ('SIGINT') { abort '' }
+
 		# コマンド引数の解析
 		options = {}
 		command = nil
