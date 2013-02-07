@@ -375,7 +375,6 @@ class Repo
 		return config
 	end
 
-	opts = ['-I', '.git']
 	# 外部コマンドを定義する
 	def self.define_command(command, *opts)
 		define_method "confgit_#{command}" do |options, *args|
