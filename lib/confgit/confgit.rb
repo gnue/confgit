@@ -592,13 +592,14 @@ EOD
 
 	# バックアップする
 	def confgit_backup(*args)
-		dryrun = false
 		force = false
+		yes = nil
 
 		OptionParser.new { |opts|
 			begin
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
+				opts.on('-n', '--dry-run', 'dry run')	{ yes = false }
+				opts.on('-y', '--yes', 'yes')			{ yes = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.parse!(args)
 			rescue => e
@@ -619,7 +620,7 @@ EOD
 
 			if force || modfile?(from, to)
 				with_color(:fg_blue) { print "--> #{file}" }
-				write = dryrun ? false : nil
+				write = yes
 
 				if write == nil
 					# 書込みが決定していない場合
@@ -637,13 +638,14 @@ EOD
 
 	# リストアする
 	def confgit_restore(*args)
-		dryrun = false
 		force = false
+		yes = nil
 
 		OptionParser.new { |opts|
 			begin
 				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ dryrun = true }
+				opts.on('-n', '--dry-run', 'dry run')	{ yes = false }
+				opts.on('-y', '--yes', 'yes')			{ yes = true }
 				opts.on('-f', 'force')					{ force = true }
 				opts.parse!(args)
 			rescue => e
@@ -664,7 +666,7 @@ EOD
 
 			if force || modfile?(from, to)
 				with_color(:fg_blue) { print "<-- #{file}" }
-				write = dryrun ? false : nil
+				write = yes
 
 				if write == nil
 					# 書込みが決定していない場合
