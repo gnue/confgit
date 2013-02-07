@@ -342,7 +342,7 @@ EOD
 	end
 
 	# ファイルのコピー（属性は維持する）
-	def filecopy(from, to)
+	def filecopy(from, to, exiting = false)
 		begin
 			to_dir = File.dirname(to)
 			FileUtils.mkpath(to_dir)
@@ -359,7 +359,8 @@ EOD
 
 			return true
 		rescue => e
-			abort e.to_s
+			abort e.to_s if exiting
+			$stderr.puts e.to_s
 		end
 	end
 
