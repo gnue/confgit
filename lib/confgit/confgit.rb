@@ -61,6 +61,9 @@ require 'rubygems'
 require 'json'
 
 
+module Confgit
+
+
 module WithColor
 	ESC_CODES = {
 		# Text attributes
@@ -111,7 +114,7 @@ module WithColor
 end
 
 
-class Confgit
+class Repo
 	include WithColor
 
 	COMMANDS = <<EOD
@@ -153,7 +156,7 @@ EOD
 			end
 		}
 
-		confgit = Confgit.new
+		confgit = self.new
 		confgit.action(command, *argv)
 	end
 
@@ -730,7 +733,9 @@ EOD
 	define_command('tig')					# tigで表示する
 end
 
+end
+
 
 if __FILE__ == $0
-	Confgit.run
+	Confgit::Repo.run
 end
