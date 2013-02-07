@@ -4,6 +4,6 @@ require "confgit/confgit"
 
 module Confgit
 	def self.run(argv = ARGV)
-		Repo.run(argv)
+		CLI.run(argv)
 	end
 end

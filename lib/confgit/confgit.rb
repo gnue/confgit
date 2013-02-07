@@ -114,8 +114,7 @@ module WithColor
 end
 
 
-class Repo
-	include WithColor
+class CLI
 
 	COMMANDS = <<EOD
 commands:
@@ -133,10 +132,13 @@ commands:
 EOD
 
 	def self.run(argv = ARGV)
+		CLI.new.run(argv)
+	end
+
+	def run(argv = ARGV)
 		trap ('SIGINT') { abort '' }
 
 		# コマンド引数の解析
-		options = {}
 		command = nil
 
 		OptionParser.new { |opts|
@@ -156,9 +158,129 @@ EOD
 			end
 		}
 
-		confgit = self.new
-		confgit.action(command, *argv)
+		action(command, argv)
 	end
+
+	# アクションの実行
+	def action(command, argv)
+		command = command.gsub(/-/, '_')
+
+		# オプション解析
+		options = {}
+		options_method = "options_#{command}"
+		options = send(options_method, argv) if respond_to?(options_method)
+
+		confgit = Repo.new
+		confgit.send("confgit_#{command}", options, *argv)
+	end
+
+	# サブコマンド・オプションのバナー作成
+	def banner(opts, method, *args)
+		subcmd = method.to_s.gsub(/^.+_/, '')
+		["Usage: #{opts.program_name} #{subcmd}", *args].join(' ')
+	end
+
+
+	# オプション解析
+
+	# カレントリポジトリの表示・変更
+	def options_repo(argv)
+		options = {}
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '[options] [<repo>]')
+				opts.on('-d', 'remove repo') { options[:remove] = true }
+				opts.on('-D', 'remove repo (even if current repository)') {
+						options[:remove] = true
+						options[:force] = true
+					}
+				opts.parse!(argv)
+			rescue => e
+				abort e.to_s
+			end
+		}
+
+		options
+	end
+
+	# ファイルを管理対象に追加
+	def options_add(argv)
+		options = {}
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '<file>…')
+				opts.parse!(argv)
+
+				abort opts.help if argv.empty?
+			rescue => e
+				abort e.to_s
+			end
+		}
+
+		options
+	end
+
+	# バックアップする
+	def options_backup(argv)
+		options = {}
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
+				opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
+				opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
+				opts.on('-f', 'force')					{ options[:force] = true }
+				opts.parse!(argv)
+			rescue => e
+				abort e.to_s
+			end
+		}
+
+		options
+	end
+
+	# リストアする
+	def options_restore(argv)
+		options = {}
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
+				opts.on('-n', '--dry-run', 'dry run')	{ options[:yes] = false }
+				opts.on('-y', '--yes', 'yes')			{ options[:yes] = true }
+				opts.on('-f', 'force')					{ options[:force] = true }
+				opts.parse!(argv)
+			rescue => e
+				abort e.to_s
+			end
+		}
+
+		options
+	end
+
+	# 一覧表示する
+	def options_list(argv)
+		options = {}
+
+		OptionParser.new { |opts|
+			begin
+				opts.banner = banner(opts, __method__, '[options] [<file>…]')
+				opts.on('-8', 'mode display octal')	{ options[:octal] = true }
+				opts.parse!(argv)
+			rescue => e
+				abort e.to_s
+			end
+		}
+
+		options
+	end
+end
+
+
+class Repo
+	include WithColor
 
 	def initialize(path = '~/.etc/confgit')
 		@base_path = File.expand_path(path)
@@ -256,7 +378,7 @@ EOD
 	opts = ['-I', '.git']
 	# 外部コマンドを定義する
 	def self.define_command(command, *opts)
-		define_method "confgit_#{command}" do |*args|
+		define_method "confgit_#{command}" do |options, *args|
 			args = getargs(args)
 
 			Dir.chdir(@repo_path) { |path|
@@ -272,6 +394,8 @@ EOD
 	# メソッドがない場合
 	def method_missing(name, *args, &block)
 		if name.to_s =~ /^confgit_(.+)$/
+			options = args.shift
+
 			command = $1.gsub(/_/, '-')
 			git(command, *args)
 
@@ -279,11 +403,6 @@ EOD
 		else
 			super
 		end
-	end
-
-	def action(command, *args)
-		command = command.gsub(/-/, '_')
-		send "confgit_#{command}", *args
 	end
 
 	# 引数を利用可能にする
@@ -493,32 +612,10 @@ EOD
 		mode
 	end
 
-	# サブコマンド・オプションのバナー作成
-	def banner(opts, method, *args)
-		subcmd = method.to_s.gsub(/^.+_/, '')
-		["Usage: #{opts.program_name} #{subcmd}", *args].join(' ')
-	end
-
 	# コマンド
 
 	# カレントリポジトリの表示・変更
-	def confgit_repo(*args)
-		options = {}
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<repo>]')
-				opts.on('-d', 'remove repo') { options[:remove] = true }
-				opts.on('-D', 'remove repo (even if current repository)') {
-						options[:remove] = true
-						options[:force] = true
-					}
-				opts.parse!(args)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
+	def confgit_repo(options, *args)
 		if args.length == 0
 			repo_each { |file, is_current|
 				mark = is_current ? '*' : ' '
@@ -536,24 +633,13 @@ EOD
 	end
 
 	# リポジトリの初期化
-	def confgit_init
+	def confgit_init(options)
 		FileUtils.mkpath(@repo_path)
 		git('init')
 	end
 
 	# ファイルを管理対象に追加
-	def confgit_add(*files)
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '<file>…')
-				opts.parse!(files)
-
-				abort opts.help if files.empty?
-			rescue => e
-				abort e.to_s
-			end
-		}
-
+	def confgit_add(options, *files)
 		confgit_init unless File.exist?(@repo_path)
 		repo = File.realpath(@repo_path)
 
@@ -583,7 +669,7 @@ EOD
 	end
 
 	# ファイルを管理対象から削除
-	def confgit_rm(*args)
+	def confgit_rm(options, *args)
 		return unless File.exist?(@repo_path)
 
 		options = getopts(args)
@@ -597,22 +683,7 @@ EOD
 	end
 
 	# バックアップする
-	def confgit_backup(*args)
-		force = false
-		yes = nil
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ yes = false }
-				opts.on('-y', '--yes', 'yes')			{ yes = true }
-				opts.on('-f', 'force')					{ force = true }
-				opts.parse!(args)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
+	def confgit_backup(options, *args)
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
@@ -624,9 +695,9 @@ EOD
 				next
 			end
 
-			if force || modfile?(from, to)
+			if options[:force] || modfile?(from, to)
 				with_color(:fg_blue) { print "--> #{file}" }
-				write = yes
+				write = options[:yes]
 
 				if write == nil
 					# 書込みが決定していない場合
@@ -643,22 +714,7 @@ EOD
 	end
 
 	# リストアする
-	def confgit_restore(*args)
-		force = false
-		yes = nil
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-n', '--dry-run', 'dry run')	{ yes = false }
-				opts.on('-y', '--yes', 'yes')			{ yes = true }
-				opts.on('-f', 'force')					{ force = true }
-				opts.parse!(args)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
+	def confgit_restore(options, *args)
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
@@ -670,10 +726,10 @@ EOD
 				next
 			end
 
-			if force || modfile?(from, to)
+			if options[:force] || modfile?(from, to)
 				color = File.writable_real?(to) ? :fg_blue : :fg_magenta
 				with_color(color) { print "<-- #{file}" }
-				write = yes
+				write = options[:yes]
 
 				if write == nil
 					# 書込みが決定していない場合
@@ -688,19 +744,7 @@ EOD
 	end
 
 	# 一覧表示する
-	def confgit_list(*args)
-		octal = false
-
-		OptionParser.new { |opts|
-			begin
-				opts.banner = banner(opts, __method__, '[options] [<file>…]')
-				opts.on('-8', 'mode display octal')	{ octal = true }
-				opts.parse!(args)
-			rescue => e
-				abort e.to_s
-			end
-		}
-
+	def confgit_list(options, *args)
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
@@ -709,11 +753,11 @@ EOD
 
 			if File.exist?(from)
 				stat = File.stat(from)
-				mode = octal ? stat.mode.to_s(8) : mode2str(stat.mode)
+				mode = options[:octal] ? stat.mode.to_s(8) : mode2str(stat.mode)
 				user = Etc.getpwuid(stat.uid).name
 				group = Etc.getgrgid(stat.gid).name
 			else
-				mode = ' ' * (octal ? 6 : 10)
+				mode = ' ' * (options[:octal] ? 6 : 10)
 				user = '-'
 				group = '-'
 			end
@@ -723,7 +767,7 @@ EOD
 	end
 
 	# リポジトリのパスを表示
-	def confgit_path(subdir = '.')
+	def confgit_path(options, subdir = '.')
 		path = File.realpath(File.expand_path(subdir, @repo_path))
 		print path, "\n"
 	end
@@ -737,5 +781,5 @@ end
 
 
 if __FILE__ == $0
-	Confgit::Repo.run
+	Confgit::CLI.run
 end
