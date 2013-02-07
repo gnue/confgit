@@ -1,55 +1,5 @@
 # coding: UTF-8
 
-=begin
-
-= 設定ファイルを git で管理するためのツール
-
-
-== 使い方
-
-  $ confgit.rb repo						# リポジトリ一覧の表示
-  $ confgit.rb repo	リポジトリ名			# カレントリポジトリの変更
-  $ confgit.rb add ファイル名				# ファイルを追加
-  $ confgit.rb rm ファイル名				# ファイルを削除
-  $ confgit.rb rm -rf ディレクトリ名		# ディレクトリを削除
-  $ confgit.rb backup					# バックアップ（更新されたもののみ）
-  $ confgit.rb backup -f				# 強制バックアップ
-  $ confgit.rb restore					# リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
-  $ confgit.rb restore -f				# 強制リストア（まだ実際のファイルコピーは行えません）
-  $ confgit.rb tree						# ツリー表示（要treeコマンド）
-  $ confgit.rb tig						# tigで表示（要tigコマンド）
-  $ confgit.rb path						# リポジトリのパスを表示
-  $ confgit.rb list						# 一覧表示
-
-== ディレクトリ構造
-
-  ~/.etc/confgit
-  ├── confgit.conf			-- 設定ファイル
-  └── repos
-      ├── current			-- カレントリポジトリへのシンボリックリンク
-      └── `hostname`		-- リポジトリ（デフォルト）
-
-== 設定ファイル
-
-confgit.conf
-
-  {
-  }
-
-== 動作環境
-
-* 以下のライブラリが必要です（gem でインストールできます）
-  * json
-
-== TODO
-
-* user/group の情報を保存
-* user/group の情報を復元
-* リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
-
-=end
-
-
 require 'fileutils'
 require 'pathname'
 require 'etc'
