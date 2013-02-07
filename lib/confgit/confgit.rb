@@ -665,7 +665,8 @@ EOD
 			end
 
 			if force || modfile?(from, to)
-				with_color(:fg_blue) { print "<-- #{file}" }
+				color = File.writable_real?(to) ? :fg_blue : :fg_magenta
+				with_color(color) { print "<-- #{file}" }
 				write = yes
 
 				if write == nil
