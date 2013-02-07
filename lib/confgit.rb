@@ -1,5 +1,6 @@
 require "confgit/version"
-require "confgit/confgit"
+require "confgit/repo"
+require "confgit/cli"
 
 
 module Confgit
