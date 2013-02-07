@@ -355,6 +355,7 @@ class Repo
 	def method_missing(name, *args, &block)
 		if name.to_s =~ /^confgit_(.+)$/
 			options = args.shift
+			args = git_args(args)
 
 			command = $1.gsub(/_/, '-')
 			git(command, *args)
@@ -396,6 +397,14 @@ class Repo
 			rescue => e
 				abort e.to_s
 			end
+		}
+	end
+
+	# git コマンドの引数を生成する
+	def git_args(args)
+		args.collect { |item|
+			item = $' if %r|^/| =~ item
+			item
 		}
 	end
 
