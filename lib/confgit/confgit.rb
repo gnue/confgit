@@ -46,7 +46,7 @@ confgit.conf
 
 * user/group の情報を保存
 * user/group の情報を復元
-* リストアで実際のファイルコピーを行えるようにする
+* リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
 
 =end
 
@@ -321,6 +321,24 @@ EOD
 		open("| git hash-object \"#{path}\"") {|f|
 			return f.gets.chomp
 		}
+	end
+
+	# 確認プロンプトを表示する
+	def yes?(prompt, y = true)
+		yn = y ? 'Yn' : 'yN'
+		print "#{prompt} [#{yn}]: "
+
+		result = $stdin.gets.chomp
+
+		return y if result.empty?
+
+		if /^(y|yes)$/i =~ result
+			y = true
+		else
+			y = false
+		end
+
+		y
 	end
 
 	# ファイルのコピー（属性は維持する）
@@ -600,8 +618,17 @@ EOD
 			end
 
 			if force || modfile?(from, to)
-				with_color(:fg_blue) { print "--> #{file}\n" }
-				filecopy(from, to) unless dryrun
+				with_color(:fg_blue) { print "--> #{file}" }
+				write = dryrun ? false : nil
+
+				if write == nil
+					# 書込みが決定していない場合
+					write = yes?(nil, false)
+				else
+					puts
+				end
+
+				filecopy(from, to) if write
 			end
 		}
 
@@ -636,8 +663,17 @@ EOD
 			end
 
 			if force || modfile?(from, to)
-				with_color(:fg_blue) { print "<-- #{file}\n" }
-#				filecopy(from, to) unless dryrun
+				with_color(:fg_blue) { print "<-- #{file}" }
+				write = dryrun ? false : nil
+
+				if write == nil
+					# 書込みが決定していない場合
+					write = yes?(nil, false)
+				else
+					puts
+				end
+
+				filecopy(from, to) if write
 			end
 		}
 	end
