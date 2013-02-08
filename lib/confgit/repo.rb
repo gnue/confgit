@@ -61,7 +61,7 @@ class Repo
 						begin
 							system('git', 'init');
 						rescue => e
-							FileUtils.rmtree(repo)
+							FileUtils.remove_entry_secure(repo)
 							abort e.to_s
 						end
 					}
@@ -83,7 +83,7 @@ class Repo
 					File.unlink('current')
 				end
 
-				FileUtils.rmtree(repo)
+				FileUtils.remove_entry_secure(repo)
 
 				valid_repo unless File.symlink?('current')
 			rescue => e
