@@ -33,7 +33,7 @@ class Repo
 
 	# ホスト名
 	def hostname
-		`hostname`.chop
+		`hostname`.chomp
 	end
 
 	# カレントリポジトリがない場合の処理
