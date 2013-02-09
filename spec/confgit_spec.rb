@@ -125,7 +125,51 @@ describe Confgit do
 	end
 
 	describe "add" do
-		it "add FILE"
+		it "add FILE" do
+			chroot { |root|
+				file = 'README'
+
+				`echo test > #{file}`
+				confgit 'add', file
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					#
+					# Initial commit
+					#
+					# Changes to be committed:
+					#   (use "git rm --cached <file>..." to unstage)
+					#
+					#	new file:   #{file}
+					#
+				EOD
+			}
+		end
+
+		it "add DIR" do
+			chroot { |root|
+				dir = 'misc'
+				file = 'README'
+
+				`mkdir #{dir}`
+				`echo test > #{dir}/#{file}`
+				confgit 'add', dir
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					#
+					# Initial commit
+					#
+					# Changes to be committed:
+					#   (use "git rm --cached <file>..." to unstage)
+					#
+					#	new file:   #{dir}/#{file}
+					#
+				EOD
+			}
+		end
 	end
 
 	describe "rm" do
