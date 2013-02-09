@@ -4,6 +4,7 @@ require 'fileutils'
 require 'pathname'
 require 'etc'
 require 'shellwords'
+require 'open3'
 
 require 'rubygems'
 require 'json'
@@ -61,7 +62,8 @@ class Repo
 
 					Dir.chdir(repo) { |path|
 						begin
-							system('git', 'init')
+							out, err, status = Open3.capture3('git', 'init')
+							$stderr.puts err unless err.empty?
 						rescue => e
 							FileUtils.remove_entry_secure(repo)
 							abort e.to_s
@@ -173,8 +175,6 @@ class Repo
 		Dir.chdir(@repo_path) { |path|
 			begin
 				if options[:capture]
-					require 'open3'
-
 					Open3.capture3('git', *args)
 				else
 					system('git', *args)
