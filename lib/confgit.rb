@@ -4,7 +4,7 @@ require "confgit/cli"
 
 
 module Confgit
-	def self.run(argv = ARGV)
-		CLI.run(argv)
+	def self.run(argv = ARGV, options = {})
+		CLI.run(argv, options)
 	end
 end

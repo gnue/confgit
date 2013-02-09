@@ -3,9 +3,18 @@ require 'confgit'
 
 
 describe Confgit do
+	def arg_last_options(args)
+		if args.last && args.last.kind_of?(Hash)
+			args.pop
+		else
+			{}
+		end
+	end
+
 	def confgit(*argv)
 		begin
-			Confgit.run(argv)
+			options = arg_last_options(argv)
+			Confgit.run(argv, options)
 		rescue SystemExit => err
 			@abort = err.inspect
 		end

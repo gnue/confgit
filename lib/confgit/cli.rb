@@ -25,11 +25,11 @@ commands:
     list                             一覧表示
 EOD
 
-	def self.run(argv = ARGV)
-		CLI.new.run(argv)
+	def self.run(argv = ARGV, options = {})
+		CLI.new.run(argv, options)
 	end
 
-	def run(argv = ARGV)
+	def run(argv = ARGV, options = {})
 		trap ('SIGINT') { abort '' }
 
 		# コマンド引数の解析
@@ -52,17 +52,16 @@ EOD
 			end
 		}
 
-		action(command, argv)
+		action(command, argv, options)
 	end
 
 	# アクションの実行
-	def action(command, argv)
+	def action(command, argv, options = {})
 		command = command.gsub(/-/, '_')
 
 		# オプション解析
-		options = {}
 		options_method = "options_#{command}"
-		options = send(options_method, argv) if respond_to?(options_method)
+		options.merge!(send(options_method, argv)) if respond_to?(options_method)
 
 		confgit = Repo.new
 		confgit.send("confgit_#{command}", options, *argv)

@@ -133,7 +133,7 @@ class Repo
 	def method_missing(name, *args, &block)
 		if name.to_s =~ /^confgit_(.+)$/
 			options = args.shift
-			args = git_args(args)
+			args = git_args(args).push(options)
 
 			command = $1.gsub(/_/, '-')
 			git(command, *args)
@@ -167,14 +167,29 @@ class Repo
 		}
 	end
 
+	# 引数の最後が Hash ならオプションとして取出す
+	def arg_last_options(args)
+		if args.last && args.last.kind_of?(Hash)
+			args.pop
+		else
+			{}
+		end
+	end
+
 	# git を呼出す
 	def git(*args)
-		options = {}
-		options = args.pop if args.last && args.last.kind_of?(Hash)
+		options = arg_last_options(args)
 
 		Dir.chdir(@repo_path) { |path|
 			begin
-				if options[:capture]
+				if options[:interactive] == false
+					out, err, status = Open3.capture3('git', *args)
+
+					$stdout.print out unless out.empty?
+					$stderr.print err unless err.empty?
+
+					status
+				elsif options[:capture]
 					Open3.capture3('git', *args)
 				else
 					system('git', *args)
@@ -188,7 +203,7 @@ class Repo
 	# git コマンドの引数を生成する
 	def git_args(args)
 		args.collect { |item|
-			item = $' if %r|^/| =~ item
+			item = $' if item.kind_of?(String) && %r|^/| =~ item
 			item
 		}
 	end
