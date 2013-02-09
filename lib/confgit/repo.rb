@@ -195,12 +195,14 @@ class Repo
 
 	# ルートのパスを取得する
 	def root
+		return @root if @root
+
 		# 表示
 		out, err, status = git('config', '--path', '--local', ROOT_KEY, :capture => true)
 		out.chomp!
 		out = '/' if out.empty?
 
-		out
+		@root = out
 	end
 
 	# ルートのパスを設定する
@@ -210,6 +212,8 @@ class Repo
 		else
 			git('config', '--unset', '--local', ROOT_KEY)
 		end
+
+		@root = nil
 	end
 
 	# ファイルの hash値を求める
