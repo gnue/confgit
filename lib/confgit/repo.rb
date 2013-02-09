@@ -61,7 +61,7 @@ class Repo
 
 					Dir.chdir(repo) { |path|
 						begin
-							system('git', 'init');
+							system('git', 'init')
 						rescue => e
 							FileUtils.remove_entry_secure(repo)
 							abort e.to_s
@@ -177,7 +177,7 @@ class Repo
 
 					Open3.capture3('git', *args)
 				else
-					system('git', *args);
+					system('git', *args)
 				end
 			rescue => e
 				abort e.to_s
