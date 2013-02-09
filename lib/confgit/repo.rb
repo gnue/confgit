@@ -101,6 +101,7 @@ class Repo
 	def read_config(file)
 		if File.exist?(file)
 			config = JSON.parse(File.read(file))
+			config = default_config.merge(config)
 		else
 			config = default_config
 			File.write(file, JSON.pretty_generate(config)+"\n")
