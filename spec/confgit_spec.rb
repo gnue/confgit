@@ -3,6 +3,7 @@ require 'confgit'
 
 
 describe Confgit do
+	# 引数の最後が Hash ならオプションとして取出す
 	def arg_last_options(args)
 		if args.last && args.last.kind_of?(Hash)
 			args.pop
@@ -11,6 +12,7 @@ describe Confgit do
 		end
 	end
 
+	# Confgit.run を呼出す
 	def confgit(*argv)
 		begin
 			options = arg_last_options(argv)
@@ -20,6 +22,7 @@ describe Confgit do
 		end
 	end
 
+	# カレントディレクトリとルートを変更する
 	def chroot(root = ENV['HOME'])
 		Dir.chdir(root) { |path|
 			confgit 'root', path
