@@ -14,6 +14,8 @@ require 'confgit/with_color'
 module Confgit
 
 class Repo
+	ROOT_KEY = 'confgit.root'
+
 	include WithColor
 
 	def initialize(path = '~/.etc/confgit')
@@ -165,9 +167,18 @@ class Repo
 
 	# git を呼出す
 	def git(*args)
+		options = {}
+		options = args.pop if args.last && args.last.kind_of?(Hash)
+
 		Dir.chdir(@repo_path) { |path|
 			begin
-				system('git', *args);
+				if options[:capture]
+					require 'open3'
+
+					Open3.capture3('git', *args)
+				else
+					system('git', *args);
+				end
 			rescue => e
 				abort e.to_s
 			end
@@ -180,6 +191,21 @@ class Repo
 			item = $' if %r|^/| =~ item
 			item
 		}
+	end
+
+	# ルートのパスを取得する
+	def root
+		# 表示
+		out, err, status = git('config', '--path', '--local', ROOT_KEY, :capture => true)
+		out.chomp!
+		out = '/' if out.empty?
+
+		out
+	end
+
+	# ルートのパスを設定する
+	def root=(value)
+		git('config', '--path', '--local', ROOT_KEY, value)
 	end
 
 	# ファイルの hash値を求める
@@ -372,6 +398,17 @@ class Repo
 				mark = is_current ? '*' : ' '
 				print "#{mark} #{file}\n"
 			}
+		end
+	end
+
+	# ルートの表示・変更
+	def confgit_root(options, value = nil)
+		if value
+			# 変更
+			self.root = value
+		else
+			# 表示
+			puts root
 		end
 	end
 

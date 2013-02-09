@@ -81,6 +81,21 @@ describe Confgit do
 		end
 	end
 
+	describe "root" do
+		it "root" do
+			out, err = capture_io { confgit 'root' }
+			out.must_equal "/\n"
+		end
+
+		it "root PATH" do
+			path = ENV['HOME']
+
+			confgit 'root', path
+			out, err = capture_io { confgit 'root' }
+			out.must_equal "#{path}\n"
+		end
+	end
+
 	describe "add" do
 		it "add FILE"
 	end

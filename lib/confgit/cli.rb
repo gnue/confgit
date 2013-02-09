@@ -12,6 +12,8 @@ class CLI
 commands:
     repo                             リポジトリ一覧の表示
     repo REPO                        カレントリポジトリの変更
+    root                             ルートの表示
+    root PATH                        ルートの変更
     add FILE…                        ファイルを追加
     rm FILE…                         ファイルを削除
     rm -rf DIRECTORY                 ディレクトリを削除
