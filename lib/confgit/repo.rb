@@ -216,6 +216,12 @@ class Repo
 		@root = nil
 	end
 
+	# ルートからの相対パス
+	def relative_path(path)
+		root_path = Pathname.new(root)
+		Pathname.new(path).relative_path_from(root_path).to_s
+	end
+
 	# ファイルの hash値を求める
 	def hash_object(file)
 		path = File.expand_path(file)
@@ -442,7 +448,7 @@ class Repo
 					next if File.directory?(file)
 	
 					from = File.join(path, file)
-					to = File.join(repo, from)
+					to = File.join(repo, relative_path(from))
 	
 					if filecopy(from, to)
 						git('add', to)
@@ -450,7 +456,7 @@ class Repo
 				}
 			else
 				from = path
-				to = File.join(repo, from)
+				to = File.join(repo, relative_path(from))
 
 				if filecopy(from, to)
 					git('add', to)
@@ -467,7 +473,7 @@ class Repo
 		repo = File.realpath(@repo_path)
 
 		files = args.collect { |from|
-			File.join(repo, expand_path(from))
+			File.join(repo, relative_path(expand_path(from)))
 		}
 
 		git('rm', *(options + files))
@@ -478,7 +484,7 @@ class Repo
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
-			from = File.join('/', file)
+			from = File.join(root, file)
 			to = File.join(@repo_path, file)
 
 			unless File.exist?(from)
@@ -510,7 +516,7 @@ class Repo
 			next if File.directory?(file)
 
 			from = File.join(@repo_path, file)
-			to = File.join('/', file)
+			to = File.join(root, file)
 
 			unless File.exist?(from)
 				with_color(:fg_red) { print "[?] #{file}\n" }
@@ -539,7 +545,7 @@ class Repo
 		git_each(*args) { |file, hash|
 			next if File.directory?(file)
 
-			from = File.join('/', file)
+			from = File.join(root, file)
 			to = File.join(@repo_path, file)
 
 			if File.exist?(from)
