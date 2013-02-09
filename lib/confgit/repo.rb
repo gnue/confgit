@@ -358,20 +358,20 @@ class Repo
 	# コマンド
 
 	# カレントリポジトリの表示・変更
-	def confgit_repo(options, *args)
-		if args.length == 0
-			repo_each { |file, is_current|
-				mark = is_current ? '*' : ' '
-				print "#{mark} #{file}\n"
-			}
-		else
-			repo = args.first
-
+	def confgit_repo(options, repo = nil)
+		if repo
+			# 変更
 			if options[:remove]
 				rmrepo(repo, options[:force])
 			else
 				chrepo(repo)
 			end
+		else
+			# 表示
+			repo_each { |file, is_current|
+				mark = is_current ? '*' : ' '
+				print "#{mark} #{file}\n"
+			}
 		end
 	end
 
