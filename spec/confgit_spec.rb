@@ -173,8 +173,89 @@ describe Confgit do
 	end
 
 	describe "rm" do
-		it "rm FILE"
-		it "rm -rf DIR"
+		it "rm FILE" do
+			chroot { |root|
+				file = 'README'
+
+				`echo test > #{file}`
+				confgit 'add', file
+				capture_io { confgit 'commit', '-m', "add #{file}", :interactive => false }
+				confgit 'rm', file
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					# Changes to be committed:
+					#   (use "git reset HEAD <file>..." to unstage)
+					#
+					#	deleted:    #{file}
+					#
+				EOD
+			}
+		end
+
+		it "rm -f FILE" do
+			chroot { |root|
+				file = 'README'
+
+				`echo test > #{file}`
+				confgit 'add', file
+				confgit 'rm', '-f', file
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					#
+					# Initial commit
+					#
+					nothing to commit (create/copy files and use "git add" to track)
+				EOD
+			}
+		end
+
+		it "rm -r DIR" do
+			chroot { |root|
+				dir = 'misc'
+				file = 'README'
+
+				`mkdir #{dir}`
+				`echo test > #{dir}/#{file}`
+				confgit 'add', dir
+				capture_io { confgit 'commit', '-m', "add #{dir}", :interactive => false }
+				confgit 'rm', '-r', dir
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					# Changes to be committed:
+					#   (use "git reset HEAD <file>..." to unstage)
+					#
+					#	deleted:    #{dir}/#{file}
+					#
+				EOD
+			}
+		end
+
+		it "rm -rf DIR" do
+			chroot { |root|
+				dir = 'misc'
+				file = 'README'
+
+				`mkdir #{dir}`
+				`echo test > #{dir}/#{file}`
+				confgit 'add', dir
+				confgit 'rm', '-rf', dir
+				out, err = capture_io { confgit 'status', :interactive => false }
+
+				out.must_equal <<-EOD.gsub(/^\t+/,'')
+					# On branch master
+					#
+					# Initial commit
+					#
+					nothing to commit (create/copy files and use "git add" to track)
+				EOD
+			}
+		end
 	end
 
 	describe "backup" do
