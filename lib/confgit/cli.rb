@@ -104,6 +104,12 @@ EOD
 		opts.parse!(argv)
 	}
 
+	# ルートの表示・変更
+	define_options(:root, '[PATH]') { |opts, argv, options|
+		opts.on('-d', 'default root') { options[:remove] = true }
+		opts.parse!(argv)
+	}
+
 	# ファイルを管理対象に追加
 	define_options(:add, '<file>…') { |opts, argv, options|
 		opts.parse!(argv)

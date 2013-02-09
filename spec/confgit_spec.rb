@@ -94,6 +94,15 @@ describe Confgit do
 			out, err = capture_io { confgit 'root' }
 			out.must_equal "#{path}\n"
 		end
+
+		it "root -d" do
+			path = ENV['HOME']
+
+			confgit 'root', path
+			confgit 'root', '-d'
+			out, err = capture_io { confgit 'root' }
+			out.must_equal "/\n"
+		end
 	end
 
 	describe "add" do

@@ -407,7 +407,10 @@ class Repo
 
 	# ルートの表示・変更
 	def confgit_root(options, value = nil)
-		if value
+		if options[:remove]
+			# 削除
+			self.root = nil
+		elsif value
 			# 変更
 			self.root = value
 		else
