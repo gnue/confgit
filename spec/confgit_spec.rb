@@ -20,6 +20,13 @@ describe Confgit do
 		end
 	end
 
+	def chroot(root = ENV['HOME'])
+		Dir.chdir(root) { |path|
+			confgit 'root', path
+			yield(path)
+		}
+	end
+
 	before do
 		require 'tmpdir'
 
