@@ -205,7 +205,11 @@ class Repo
 
 	# ルートのパスを設定する
 	def root=(value)
-		git('config', '--path', '--local', ROOT_KEY, value)
+		if value && ! value.empty?
+			git('config', '--path', '--local', ROOT_KEY, value)
+		else
+			git('config', '--unset', '--local', ROOT_KEY)
+		end
 	end
 
 	# ファイルの hash値を求める
