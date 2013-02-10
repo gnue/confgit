@@ -15,7 +15,9 @@ describe Confgit do
 	# Confgit.run を呼出す
 	def confgit(*argv)
 		begin
-			options = arg_last_options(argv)
+			options = {:interactive => false}
+			options.merge!(arg_last_options(argv))
+
 			Confgit.run(argv, options)
 		rescue SystemExit => err
 			@abort = err.inspect
@@ -131,7 +133,7 @@ describe Confgit do
 		it "add FILE" do
 			chroot('README') { |root, file|
 				confgit 'add', file
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -150,7 +152,7 @@ describe Confgit do
 
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -170,9 +172,9 @@ describe Confgit do
 			chroot('README') { |root, file|
 				confgit 'add', file
 
-				capture_io { confgit 'commit', '-m', "add #{file}", :interactive => false }
+				capture_io { confgit 'commit', '-m', "add #{file}" }
 				proc { confgit 'rm', file }.must_output "rm '#{file}'\n"
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -188,7 +190,7 @@ describe Confgit do
 				confgit 'add', file
 
 				proc { confgit 'rm', '-f', file }.must_output "rm '#{file}'\n"
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -204,9 +206,9 @@ describe Confgit do
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
 
-				capture_io { confgit 'commit', '-m', "add #{dir}", :interactive => false }
+				capture_io { confgit 'commit', '-m', "add #{dir}" }
 				proc { confgit 'rm', '-r', dir }.must_output "rm '#{file}'\n"
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -224,7 +226,7 @@ describe Confgit do
 				confgit 'add', dir
 
 				proc { confgit 'rm', '-rf', dir }.must_output "rm '#{file}'\n"
-				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
