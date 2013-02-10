@@ -55,18 +55,15 @@ describe Confgit do
 
 	describe "repo" do
 		it "repo" do
-			out, err = capture_io { confgit 'repo' }
-			out.must_equal "* #{@hostname}\n"
+			proc { confgit 'repo' }.must_output "* #{@hostname}\n"
 		end
 
 		it "repo REPO" do
 			name = '_foo_'
-			out, err = capture_io {
+			proc {
 				confgit 'repo', name
 				confgit 'repo'
-			}
-
-			out.must_equal <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.gsub(/^\t+/,'')
 				* #{name}
 				  #{@hostname}
 			EOD
@@ -75,14 +72,12 @@ describe Confgit do
 		it "repo -d REPO (not current)" do
 			name1 = '_foo_'
 			name2 = '_bar_'
-			out, err = capture_io {
+			proc {
 				confgit 'repo', name1
 				confgit 'repo', name2
 				confgit 'repo', '-d', name1
 				confgit 'repo'
-			}
-
-			out.must_equal <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.gsub(/^\t+/,'')
 				* #{name2}
 				  #{@hostname}
 			EOD
@@ -90,14 +85,12 @@ describe Confgit do
 
 		it "repo -d REPO (current)" do
 			name = '_foo_'
-			out, err = capture_io {
+			proc {
 				confgit 'repo', name
 				confgit 'repo', '-d', name
 				@abort == "'#{name}' is current repository!\n"
 				confgit 'repo'
-			}
-
-			out.must_equal <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.gsub(/^\t+/,'')
 				* #{name}
 				  #{@hostname}
 			EOD
@@ -105,28 +98,24 @@ describe Confgit do
 
 		it "repo -D REPO" do
 			name = '_foo_'
-			out, err = capture_io {
+			proc {
 				confgit 'repo', name
 				confgit 'repo', '-D', name
 				confgit 'repo'
-			}
-
-			out.must_equal "* #{@hostname}\n"
+			}.must_output "* #{@hostname}\n"
 		end
 	end
 
 	describe "root" do
 		it "root" do
-			out, err = capture_io { confgit 'root' }
-			out.must_equal "/\n"
+			proc { confgit 'root' }.must_output "/\n"
 		end
 
 		it "root PATH" do
 			path = ENV['HOME']
 
 			confgit 'root', path
-			out, err = capture_io { confgit 'root' }
-			out.must_equal "#{path}\n"
+			proc { confgit 'root' }.must_output "#{path}\n"
 		end
 
 		it "root -d" do
@@ -134,8 +123,7 @@ describe Confgit do
 
 			confgit 'root', path
 			confgit 'root', '-d'
-			out, err = capture_io { confgit 'root' }
-			out.must_equal "/\n"
+			proc { confgit 'root' }.must_output "/\n"
 		end
 	end
 
@@ -143,9 +131,7 @@ describe Confgit do
 		it "add FILE" do
 			chroot('README') { |root, file|
 				confgit 'add', file
-				out, err = capture_io { confgit 'status', :interactive => false }
-
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -164,9 +150,7 @@ describe Confgit do
 
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
-				out, err = capture_io { confgit 'status', :interactive => false }
-
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -185,13 +169,10 @@ describe Confgit do
 		it "rm FILE" do
 			chroot('README') { |root, file|
 				confgit 'add', file
+
 				capture_io { confgit 'commit', '-m', "add #{file}", :interactive => false }
-
-				out, err = capture_io { confgit 'rm', file }
-				out.must_equal "rm '#{file}'\n"
-
-				out, err = capture_io { confgit 'status', :interactive => false }
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'rm', file }.must_output "rm '#{file}'\n"
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -206,11 +187,8 @@ describe Confgit do
 			chroot('README') { |root, file|
 				confgit 'add', file
 
-				out, err = capture_io { confgit 'rm', '-f', file }
-				out.must_equal "rm '#{file}'\n"
-
-				out, err = capture_io { confgit 'status', :interactive => false }
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'rm', '-f', file }.must_output "rm '#{file}'\n"
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
@@ -225,13 +203,10 @@ describe Confgit do
 
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
+
 				capture_io { confgit 'commit', '-m', "add #{dir}", :interactive => false }
-
-				out, err = capture_io { confgit 'rm', '-r', dir }
-				out.must_equal "rm '#{file}'\n"
-
-				out, err = capture_io { confgit 'status', :interactive => false }
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'rm', '-r', dir }.must_output "rm '#{file}'\n"
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -248,11 +223,8 @@ describe Confgit do
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
 
-				out, err = capture_io { confgit 'rm', '-rf', dir }
-				out.must_equal "rm '#{file}'\n"
-
-				out, err = capture_io { confgit 'status', :interactive => false }
-				out.must_equal <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'rm', '-rf', dir }.must_output "rm '#{file}'\n"
+				proc { confgit 'status', :interactive => false }.must_output <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
 					# Initial commit
