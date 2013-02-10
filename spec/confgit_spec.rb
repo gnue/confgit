@@ -23,10 +23,25 @@ describe Confgit do
 	end
 
 	# カレントディレクトリとルートを変更する
-	def chroot(root = ENV['HOME'])
+	def chroot(*args)
+		options = arg_last_options(args)
+
+		root = options[:root]
+		root ||= ENV['HOME']
+
 		Dir.chdir(root) { |path|
 			confgit 'root', path
-			yield(path)
+
+			args.each { |file|
+				dir = File.dirname(file)
+				FileUtils.mkpath(dir) unless dir == '.'
+
+				open(file, 'w') { |f|
+					f.puts options[:data] if options[:data]
+				}
+			}
+
+			yield(path, *args)
 		}
 	end
 
@@ -126,10 +141,7 @@ describe Confgit do
 
 	describe "add" do
 		it "add FILE" do
-			chroot { |root|
-				file = 'README'
-
-				`echo test > #{file}`
+			chroot('README') { |root, file|
 				confgit 'add', file
 				out, err = capture_io { confgit 'status', :interactive => false }
 
@@ -148,12 +160,9 @@ describe Confgit do
 		end
 
 		it "add DIR" do
-			chroot { |root|
-				dir = 'misc'
-				file = 'README'
+			dir = 'misc'
 
-				`mkdir #{dir}`
-				`echo test > #{dir}/#{file}`
+			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
 				out, err = capture_io { confgit 'status', :interactive => false }
 
@@ -165,7 +174,7 @@ describe Confgit do
 					# Changes to be committed:
 					#   (use "git rm --cached <file>..." to unstage)
 					#
-					#	new file:   #{dir}/#{file}
+					#	new file:   #{file}
 					#
 				EOD
 			}
@@ -174,10 +183,7 @@ describe Confgit do
 
 	describe "rm" do
 		it "rm FILE" do
-			chroot { |root|
-				file = 'README'
-
-				`echo test > #{file}`
+			chroot('README') { |root, file|
 				confgit 'add', file
 				capture_io { confgit 'commit', '-m', "add #{file}", :interactive => false }
 
@@ -197,10 +203,7 @@ describe Confgit do
 		end
 
 		it "rm -f FILE" do
-			chroot { |root|
-				file = 'README'
-
-				`echo test > #{file}`
+			chroot('README') { |root, file|
 				confgit 'add', file
 
 				out, err = capture_io { confgit 'rm', '-f', file }
@@ -218,17 +221,14 @@ describe Confgit do
 		end
 
 		it "rm -r DIR" do
-			chroot { |root|
-				dir = 'misc'
-				file = 'README'
+			dir = 'misc'
 
-				`mkdir #{dir}`
-				`echo test > #{dir}/#{file}`
+			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
 				capture_io { confgit 'commit', '-m', "add #{dir}", :interactive => false }
 
 				out, err = capture_io { confgit 'rm', '-r', dir }
-				out.must_equal "rm '#{dir}/#{file}'\n"
+				out.must_equal "rm '#{file}'\n"
 
 				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
@@ -236,23 +236,20 @@ describe Confgit do
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
 					#
-					#	deleted:    #{dir}/#{file}
+					#	deleted:    #{file}
 					#
 				EOD
 			}
 		end
 
 		it "rm -rf DIR" do
-			chroot { |root|
-				dir = 'misc'
-				file = 'README'
+			dir = 'misc'
 
-				`mkdir #{dir}`
-				`echo test > #{dir}/#{file}`
+			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
 
 				out, err = capture_io { confgit 'rm', '-rf', dir }
-				out.must_equal "rm '#{dir}/#{file}'\n"
+				out.must_equal "rm '#{file}'\n"
 
 				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
