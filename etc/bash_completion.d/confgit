@@ -1,0 +1,26 @@
+# bash completion for confgit
+
+_confgit()
+{
+	local prev=${COMP_WORDS[COMP_CWORD-1]}
+	local curr=${COMP_WORDS[COMP_CWORD]}
+
+	case "${prev}" in
+	confgit)
+	    COMPREPLY=(repo root add rm backup restore tree tig path list)
+		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
+		;;
+	*)
+		COMPREPLY=($(compgen -f "${curr}"))
+		;;
+    esac
+}
+complete -F _confgit confgit
+
+# Local variables:
+# mode: shell-script
+# sh-basic-offset: 4
+# sh-indent-comment: t
+# indent-tabs-mode: nil
+# End:
+# ex: ts=4 sw=4 et filetype=sh
