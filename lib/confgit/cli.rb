@@ -37,7 +37,7 @@ EOD
 
 		OptionParser.new { |opts|
 			begin
-				opts.version = VERSION if defined?(VERSION)
+				opts.version = LONG_VERSION || VERSION
 				opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
 
 				opts.on('-h', '--help', 'Show this message')	{ abort opts.help }
