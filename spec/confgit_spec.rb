@@ -180,9 +180,11 @@ describe Confgit do
 				`echo test > #{file}`
 				confgit 'add', file
 				capture_io { confgit 'commit', '-m', "add #{file}", :interactive => false }
-				confgit 'rm', file
-				out, err = capture_io { confgit 'status', :interactive => false }
 
+				out, err = capture_io { confgit 'rm', file }
+				out.must_equal "rm '#{file}'\n"
+
+				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
@@ -200,9 +202,11 @@ describe Confgit do
 
 				`echo test > #{file}`
 				confgit 'add', file
-				confgit 'rm', '-f', file
-				out, err = capture_io { confgit 'status', :interactive => false }
 
+				out, err = capture_io { confgit 'rm', '-f', file }
+				out.must_equal "rm '#{file}'\n"
+
+				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#
@@ -222,9 +226,11 @@ describe Confgit do
 				`echo test > #{dir}/#{file}`
 				confgit 'add', dir
 				capture_io { confgit 'commit', '-m', "add #{dir}", :interactive => false }
-				confgit 'rm', '-r', dir
-				out, err = capture_io { confgit 'status', :interactive => false }
 
+				out, err = capture_io { confgit 'rm', '-r', dir }
+				out.must_equal "rm '#{dir}/#{file}'\n"
+
+				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					# Changes to be committed:
@@ -244,9 +250,11 @@ describe Confgit do
 				`mkdir #{dir}`
 				`echo test > #{dir}/#{file}`
 				confgit 'add', dir
-				confgit 'rm', '-rf', dir
-				out, err = capture_io { confgit 'status', :interactive => false }
 
+				out, err = capture_io { confgit 'rm', '-rf', dir }
+				out.must_equal "rm '#{dir}/#{file}'\n"
+
+				out, err = capture_io { confgit 'status', :interactive => false }
 				out.must_equal <<-EOD.gsub(/^\t+/,'')
 					# On branch master
 					#

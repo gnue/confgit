@@ -491,7 +491,7 @@ class Repo
 			File.join(repo, relative_path(expand_path(from)))
 		}
 
-		git('rm', *(options + files))
+		git('rm', *(options + files), :interactive => false)
 	end
 
 	# バックアップする
