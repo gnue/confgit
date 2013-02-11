@@ -248,14 +248,16 @@ describe Confgit do
 	end
 
 	describe "backup" do
+		file = 'VERSION'
+
 		it "backup -n" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+				open(file, 'w') { |f| f.puts '0.0.1' }
 
 				proc { confgit 'backup', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
-					\e[34m--> VERSION\e[m
+					\e[34m--> #{file}\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -263,10 +265,12 @@ describe Confgit do
 		end
 
 		it "backup -y" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			file = 'VERSION'
+
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+				open(file, 'w') { |f| f.puts '0.0.1' }
 
 				proc { confgit 'backup', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m--> VERSION\e[m
@@ -275,7 +279,7 @@ describe Confgit do
 					#   (use "git add <file>..." to update what will be committed)
 					#   (use "git checkout -- <file>..." to discard changes in working directory)
 					#
-					#	modified:   VERSION
+					#	modified:   #{file}
 					#
 					no changes added to commit (use "git add" and/or "git commit -a")
 				EOD
@@ -283,15 +287,17 @@ describe Confgit do
 		end
 
 		it "backup -fn" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			file = 'VERSION'
+
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				File.delete 'VERSION'
+				File.delete file
 
 				proc { confgit 'backup', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m--> LICENSE.txt\e[m
 					\e[34m--> README\e[m
-					\e[31m[?] VERSION\e[m
+					\e[31m[?] #{file}\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -336,15 +342,17 @@ describe Confgit do
 		end
 
 		it "restore -fn" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			file = 'VERSION'
+
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				File.delete 'VERSION'
+				File.delete file
 
 				proc { confgit 'restore', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m<-- LICENSE.txt\e[m
 					\e[34m<-- README\e[m
-					\e[35m<-- VERSION\e[m
+					\e[35m<-- #{file}\e[m
 				EOD
 			}
 		end
