@@ -2,24 +2,32 @@
 
 _confgit()
 {
-	local prev=${COMP_WORDS[COMP_CWORD-1]}
-	local curr=${COMP_WORDS[COMP_CWORD]}
+	local cur
 
-	case "${prev}" in
-	"${COMP_WORDS}")
+	COMPREPLY=()
+	_get_comp_words_by_ref cur
+
+	if [[ $COMP_CWORD == 1 ]]; then
 		COMPREPLY=(repo root add rm backup restore tree tig path list)
-		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
-		;;
+		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "$cur"))
+		return 0
+	fi
+
+	case ${COMP_WORDS[1]} in
 	repo)
+		[[ 2 < $COMP_CWORD ]] && return 0
+
 		COMPREPLY=$(ls ~/.etc/confgit/repos/ | fgrep -v current)
 		COMPREPLY=("${COMPREPLY[@]}" `readlink ~/.etc/confgit/repos/current`)
-		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
+		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "$cur"))
 		;;
 	*)
-		COMPREPLY=($(compgen -f "${curr}"))
+		_filedir
 		;;
 	esac
-}
+
+	return 0
+} &&
 complete -F _confgit confgit
 
 # Local variables:
