@@ -248,9 +248,9 @@ describe Confgit do
 	end
 
 	describe "backup" do
-		file = 'VERSION'
-
 		it "backup -n" do
+			file = 'VERSION'
+
 			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
