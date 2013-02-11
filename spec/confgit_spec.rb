@@ -366,6 +366,37 @@ describe Confgit do
 		end
 	end
 
+	describe "list" do
+		before do
+			chroot('VERSION', 'README', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+			}
+		end
+
+		it "list" do
+			chroot { |root, *files|
+				out, err, status = capture_io { confgit 'list' }
+				out.must_match Regexp.new <<-EOD.gsub(/^\t+/,'')
+					-rw-r--r--	.+	.+	#{root}/LICENSE\.txt
+					-rw-r--r--	.+	.+	#{root}/README
+					-rw-r--r--	.+	.+	#{root}/VERSION
+				EOD
+			}
+		end
+
+		it "list -8" do
+			chroot { |root, *files|
+				out, err, status = capture_io { confgit 'list', '-8' }
+				out.must_match Regexp.new <<-EOD.gsub(/^\t+/,'')
+					100644	.+	.+	#{root}/LICENSE\.txt
+					100644	.+	.+	#{root}/README
+					100644	.+	.+	#{root}/VERSION
+				EOD
+			}
+		end
+	end
+
 	describe "utilities" do
 		it "tree"
 		it "tig"
@@ -376,8 +407,6 @@ describe Confgit do
 
 			proc { confgit 'path' }.must_output "#{path}\n"
 		end
-
-		it "list"
 	end
 
 	after do
