@@ -1,3 +1,5 @@
+# coding: UTF-8
+
 require File.expand_path('../spec_helper', __FILE__)
 require 'confgit'
 
@@ -397,8 +399,56 @@ describe Confgit do
 		end
 	end
 
+	describe "tree" do
+		before do
+			@dir = 'misc'
+			chroot('.version', 'VERSION', 'README', File.join(@dir, 'LICENSE.txt')) { |root, *files|
+				confgit 'add', *files
+			}
+		end
+
+		it "tree" do
+			chroot { |root, *files|
+				proc { confgit 'tree' }.must_output <<-EOD.gsub(/^\t+/,'')
+					.
+					├── README
+					├── VERSION
+					└── #{@dir}
+					    └── LICENSE.txt
+
+					1 directory, 3 files
+				EOD
+			}
+		end
+
+		it "tree -a" do
+			chroot { |root, *files|
+				proc { confgit 'tree', '-a' }.must_output <<-EOD.gsub(/^\t+/,'')
+					.
+					├── .version
+					├── README
+					├── VERSION
+					└── #{@dir}
+					    └── LICENSE.txt
+
+					1 directory, 4 files
+				EOD
+			}
+		end
+
+		it "tree DIR" do
+			chroot { |root, *files|
+				proc { confgit 'tree', @dir }.must_output <<-EOD.gsub(/^\t+/,'')
+					#{@dir}
+					└── LICENSE.txt
+
+					0 directories, 1 file
+				EOD
+			}
+		end
+	end
+
 	describe "utilities" do
-		it "tree"
 		it "tig"
 
 		it "path" do
