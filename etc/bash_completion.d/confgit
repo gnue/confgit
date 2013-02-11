@@ -6,14 +6,14 @@ _confgit()
 	local curr=${COMP_WORDS[COMP_CWORD]}
 
 	case "${prev}" in
-	confgit)
-	    COMPREPLY=(repo root add rm backup restore tree tig path list)
+	"${COMP_WORDS}")
+		COMPREPLY=(repo root add rm backup restore tree tig path list)
 		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
 		;;
 	*)
 		COMPREPLY=($(compgen -f "${curr}"))
 		;;
-    esac
+	esac
 }
 complete -F _confgit confgit
 
