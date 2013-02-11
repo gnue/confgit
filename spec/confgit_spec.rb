@@ -238,7 +238,55 @@ describe Confgit do
 	end
 
 	describe "backup" do
-		it "backup"
+		it "backup -n" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+
+				proc { confgit 'backup', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m--> VERSION\e[m
+					# On branch master
+					nothing to commit (working directory clean)
+				EOD
+			}
+		end
+
+		it "backup -y" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+
+				proc { confgit 'backup', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m--> VERSION\e[m
+					# On branch master
+					# Changes not staged for commit:
+					#   (use "git add <file>..." to update what will be committed)
+					#   (use "git checkout -- <file>..." to discard changes in working directory)
+					#
+					#	modified:   VERSION
+					#
+					no changes added to commit (use "git add" and/or "git commit -a")
+				EOD
+			}
+		end
+
+		it "backup -fn" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				File.delete 'VERSION'
+
+				proc { confgit 'backup', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m--> LICENSE.txt\e[m
+					\e[34m--> README\e[m
+					\e[31m[?] VERSION\e[m
+					# On branch master
+					nothing to commit (working directory clean)
+				EOD
+			}
+		end
 	end
 
 	describe "restore" do
