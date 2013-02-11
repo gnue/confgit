@@ -10,6 +10,11 @@ _confgit()
 		COMPREPLY=(repo root add rm backup restore tree tig path list)
 		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
 		;;
+	repo)
+		COMPREPLY=$(ls ~/.etc/confgit/repos/ | fgrep -v current)
+		COMPREPLY=("${COMPREPLY[@]}" `readlink ~/.etc/confgit/repos/current`)
+		COMPREPLY=($(compgen -W "${COMPREPLY[*]}" "${curr}"))
+		;;
 	*)
 		COMPREPLY=($(compgen -f "${curr}"))
 		;;
