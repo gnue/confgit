@@ -121,7 +121,9 @@ class Repo
 
 			Dir.chdir(@repo_path) { |path|
 				begin
-					system(command, *(opts + args))
+					args = opts + args
+					args.push(options)
+					system_(command, *args)
 				rescue => e
 					abort e.to_s
 				end
@@ -176,24 +178,29 @@ class Repo
 		end
 	end
 
-	# git を呼出す
-	def git(*args)
+	# オプションに応じて外部呼出しを行う
+	def system_(command, *args)
 		options = arg_last_options(args)
 
+		if options[:interactive] == false
+			out, err, status = Open3.capture3(command, *args)
+
+			$stdout.print out unless out.empty?
+			$stderr.print err unless err.empty?
+
+			status
+		elsif options[:capture]
+			Open3.capture3(command, *args)
+		else
+			system(command, *args)
+		end
+	end
+
+	# git を呼出す
+	def git(*args)
 		Dir.chdir(@repo_path) { |path|
 			begin
-				if options[:interactive] == false
-					out, err, status = Open3.capture3('git', *args)
-
-					$stdout.print out unless out.empty?
-					$stderr.print err unless err.empty?
-
-					status
-				elsif options[:capture]
-					Open3.capture3('git', *args)
-				else
-					system('git', *args)
-				end
+				system_('git', *args)
 			rescue => e
 				abort e.to_s
 			end
