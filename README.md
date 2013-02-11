@@ -20,6 +20,9 @@ Or install it yourself as:
 
 	$ confgit repo						# リポジトリ一覧の表示
 	$ confgit repo リポジトリ名			# カレントリポジトリの変更
+	$ confgit root						# ルートの表示
+	$ confgit root ディレクトリ名			# ルートの変更
+	$ confgit root -d					# ルートの設定を削除する（デフォルト値 / になる）
 	$ confgit add ファイル名				# ファイルを追加
 	$ confgit rm ファイル名				# ファイルを削除
 	$ confgit rm -rf ディレクトリ名		# ディレクトリを削除
