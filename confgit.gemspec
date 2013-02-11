@@ -12,7 +12,7 @@ Gem::Specification.new do |gem|
   gem.summary       = %q{Config files management tool with git}
   gem.homepage      = ""
 
-  gem.files         = `git ls-files`.split($/) + ['VERSION']
+  gem.files         = `git ls-files`.split($/) + %w(VERSION)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
