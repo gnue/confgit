@@ -351,7 +351,19 @@ describe Confgit do
 	end
 
 	describe "git" do
-		it "commit -a"
+		it "commit" do
+			chroot('README') { |root, file|
+				confgit 'add', file
+				out, err, status = capture_io { confgit 'commit', '-m', "add #{file}" }
+				err.must_be_empty
+				status.must_be_nil
+				out.must_match <<-EOD.gsub(/^\t+/,'')
+
+					 0 files changed
+					 create mode 100644 #{file}
+				EOD
+			}
+		end
 	end
 
 	describe "utilities" do
