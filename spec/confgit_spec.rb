@@ -248,16 +248,21 @@ describe Confgit do
 	end
 
 	describe "backup" do
-		it "backup -n" do
-			file = 'VERSION'
+		before do
+			@mod_file = 'VERSION'
+			@data = '0.0.1'
 
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
+			chroot(@mod_file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open(file, 'w') { |f| f.puts '0.0.1' }
+				open(@mod_file, 'w') { |f| f.puts @data }
+			}
+		end
 
+		it "backup -n" do
+			chroot { |root, *files|
 				proc { confgit 'backup', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
-					\e[34m--> #{file}\e[m
+					\e[34m--> #{@mod_file}\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -265,13 +270,7 @@ describe Confgit do
 		end
 
 		it "backup -y" do
-			file = 'VERSION'
-
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
-				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open(file, 'w') { |f| f.puts '0.0.1' }
-
+			chroot { |root, *files|
 				proc { confgit 'backup', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m--> VERSION\e[m
 					# On branch master
@@ -279,7 +278,7 @@ describe Confgit do
 					#   (use "git add <file>..." to update what will be committed)
 					#   (use "git checkout -- <file>..." to discard changes in working directory)
 					#
-					#	modified:   #{file}
+					#	modified:   #{@mod_file}
 					#
 					no changes added to commit (use "git add" and/or "git commit -a")
 				EOD
@@ -287,17 +286,13 @@ describe Confgit do
 		end
 
 		it "backup -fn" do
-			file = 'VERSION'
-
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
-				capture_io { confgit 'commit', '-m', "add #{files}" }
-				File.delete file
+			chroot { |root, *files|
+				File.delete @mod_file
 
 				proc { confgit 'backup', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m--> LICENSE.txt\e[m
 					\e[34m--> README\e[m
-					\e[31m[?] #{file}\e[m
+					\e[31m[?] #{@mod_file}\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -306,53 +301,50 @@ describe Confgit do
 	end
 
 	describe "restore" do
-		it "restore -n" do
-			file = 'VERSION'
+		before do
+			@mod_file = 'VERSION'
+			@data = '0.0.1'
 
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
+			chroot(@mod_file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open(file, 'w') { |f| f.puts '0.0.1' }
+			}
+		end
 
-				modfile(file) { |prev|
+		it "restore -n" do
+			chroot { |root, *files|
+				open(@mod_file, 'w') { |f| f.puts @data }
+
+				modfile(@mod_file) { |prev|
 					proc { confgit 'restore', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
-						\e[34m<-- #{file}\e[m
+						\e[34m<-- #{@mod_file}\e[m
 					EOD
-					open(file).read.must_equal prev
+					open(@mod_file).read.must_equal prev
 				}
 			}
 		end
 
 		it "restore -y" do
-			file = 'VERSION'
-
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
-				capture_io { confgit 'commit', '-m', "add #{files}" }
-
-				modfile(file) { |prev|
-					open(file, 'w') { |f| f.puts '0.0.1' }
+			chroot { |root, *files|
+				modfile(@mod_file) { |prev|
+					open(@mod_file, 'w') { |f| f.puts @data }
 
 					proc { confgit 'restore', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
-						\e[34m<-- #{file}\e[m
+						\e[34m<-- #{@mod_file}\e[m
 					EOD
-					open(file).read.must_equal prev
+					open(@mod_file).read.must_equal prev
 				}
 			}
 		end
 
 		it "restore -fn" do
-			file = 'VERSION'
-
-			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
-				capture_io { confgit 'commit', '-m', "add #{files}" }
-				File.delete file
+			chroot { |root, *files|
+				File.delete @mod_file
 
 				proc { confgit 'restore', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
 					\e[34m<-- LICENSE.txt\e[m
 					\e[34m<-- README\e[m
-					\e[35m<-- #{file}\e[m
+					\e[35m<-- #{@mod_file}\e[m
 				EOD
 			}
 		end
