@@ -523,7 +523,7 @@ class Repo
 			end
 		}
 
-		git('status')
+		git('status', :interactive => false)
 	end
 
 	# リストアする
