@@ -359,7 +359,15 @@ class Repo
 
 	# パスを展開する
 	def expand_path(path, dir = nil)
-		File.expand_path(path, dir).gsub(%r|^/private/|, '/')
+		File.expand_path(path, dir).gsub(%r|^/private(/[^/]+)|) { |m|
+			begin
+				subdir = $1
+				m = subdir if File.realpath(subdir) == m
+			rescue
+			end
+
+			m
+		}
 	end
 
 	# オプションを取出す
