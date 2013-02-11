@@ -503,7 +503,8 @@ class Repo
 			to = File.join(@repo_path, file)
 
 			unless File.exist?(from)
-				with_color(:fg_red) { print "[?] #{file}\n" }
+				with_color(:fg_red) { print "[?] #{file}" }
+				puts
 				next
 			end
 
@@ -534,7 +535,8 @@ class Repo
 			to = File.join(root, file)
 
 			unless File.exist?(from)
-				with_color(:fg_red) { print "[?] #{file}\n" }
+				with_color(:fg_red) { print "[?] #{file}" }
+				puts
 				next
 			end
 
