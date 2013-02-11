@@ -47,6 +47,16 @@ describe Confgit do
 		}
 	end
 
+	# ファイルの変更を行うために現在の内容を記録する
+	def modfile(*args)
+		options = arg_last_options(args)
+
+		prevs = args.collect { |item|  open(item).read }
+		yield(*prevs)
+
+		prevs
+	end
+
 	before do
 		require 'tmpdir'
 
@@ -291,30 +301,37 @@ describe Confgit do
 
 	describe "restore" do
 		it "restore -n" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			file = 'VERSION'
+
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				open('VERSION', 'w') { |f| f.puts '0.0.1' }
-				version = open('VERSION').read
+				open(file, 'w') { |f| f.puts '0.0.1' }
 
-				proc { confgit 'restore', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
-					\e[34m<-- VERSION\e[m
-				EOD
-				open('VERSION').read.must_equal version
+				modfile(file) { |prev|
+					proc { confgit 'restore', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
+						\e[34m<-- #{file}\e[m
+					EOD
+					open(file).read.must_equal prev
+				}
 			}
 		end
 
 		it "restore -y" do
-			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+			file = 'VERSION'
+
+			chroot(file, 'README', 'LICENSE.txt') { |root, *files|
 				confgit 'add', *files
 				capture_io { confgit 'commit', '-m', "add #{files}" }
-				version = open('VERSION').read
-				open('VERSION', 'w') { |f| f.puts '0.0.1' }
 
-				proc { confgit 'restore', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
-					\e[34m<-- VERSION\e[m
-				EOD
-				open('VERSION').read.must_equal version
+				modfile(file) { |prev|
+					open(file, 'w') { |f| f.puts '0.0.1' }
+
+					proc { confgit 'restore', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
+						\e[34m<-- #{file}\e[m
+					EOD
+					open(file).read.must_equal prev
+				}
 			}
 		end
 
