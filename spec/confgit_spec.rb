@@ -290,7 +290,47 @@ describe Confgit do
 	end
 
 	describe "restore" do
-		it "restore"
+		it "restore -n" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+				version = open('VERSION').read
+
+				proc { confgit 'restore', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m<-- VERSION\e[m
+				EOD
+				open('VERSION').read.must_equal version
+			}
+		end
+
+		it "restore -y" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				version = open('VERSION').read
+				open('VERSION', 'w') { |f| f.puts '0.0.1' }
+
+				proc { confgit 'restore', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m<-- VERSION\e[m
+				EOD
+				open('VERSION').read.must_equal version
+			}
+		end
+
+		it "restore -fn" do
+			chroot('README', 'VERSION', 'LICENSE.txt') { |root, *files|
+				confgit 'add', *files
+				capture_io { confgit 'commit', '-m', "add #{files}" }
+				File.delete 'VERSION'
+
+				proc { confgit 'restore', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
+					\e[34m<-- LICENSE.txt\e[m
+					\e[34m<-- README\e[m
+					\e[35m<-- VERSION\e[m
+				EOD
+			}
+		end
 	end
 
 	describe "git" do
