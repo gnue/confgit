@@ -369,7 +369,14 @@ describe Confgit do
 	describe "utilities" do
 		it "tree"
 		it "tig"
-		it "path"
+
+		it "path" do
+			home = File.realpath(ENV['HOME'])
+			path = File.join(home, '.etc/confgit/repos', `hostname`.chomp)
+
+			proc { confgit 'path' }.must_output "#{path}\n"
+		end
+
 		it "list"
 	end
 
