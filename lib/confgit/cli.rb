@@ -47,7 +47,8 @@ class CLI
 		I18n.load_path = Dir[File.expand_path('../locales/*.yml', __FILE__)]
 		I18n.backend.load_translations
 
-		I18n.locale = ENV['LANG'][0, 2] if ENV['LANG']
+		locale = ENV['LANG'][0, 2].to_sym if ENV['LANG']
+		I18n.locale = locale if I18n.available_locales.include?(locale)
 	end
 
 	# I18n で翻訳する
