@@ -473,6 +473,11 @@ class Repo
 		files.each { |path|
 			path = expand_path(path)
 
+			if relative_path(path) =~ /^[.]{2}/
+				$stderr.puts "'#{path}' is outside directory"
+				next
+			end
+
 			if File.directory?(path)
 				dir_each(path) { |file|
 					next if File.directory?(file)
