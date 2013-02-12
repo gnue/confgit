@@ -142,6 +142,17 @@ Or install it yourself as:
 	（作業）
 	$ popd
 
+bash で補完機能を使う
+
+	$ curl -O https://raw.github.com/gnue/confgit/master/etc/bash_completion.d/confgit
+	$ cp confgit $BASH_COMPLETION_DIR
+	（再ログイン）
+
+* bash-completion がインストールされて使用可能な状態になっている必要がある
+* 使える補完
+  * 固有サブコマンド
+  * `confgit repo` でリポジトリを補完
+
 ## Directory
 
 	~/.etc/confgit
