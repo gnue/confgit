@@ -10,7 +10,7 @@ Gem::Specification.new do |gem|
   gem.email         = ["gnue@so-kukan.com"]
   gem.description   = %q{Config files management tool with git}
   gem.summary       = %q{Config files management tool with git}
-  gem.homepage      = ""
+  gem.homepage      = "https://github.com/gnue/confgit"
 
   gem.files         = `git ls-files`.split($/) + %w(VERSION)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
