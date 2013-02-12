@@ -1,0 +1,18 @@
+ja:
+  usage:
+    help: このメッセージを表示
+    commands: |
+      commands:
+          repo                             リポジトリ一覧の表示
+          repo REPO                        カレントリポジトリの変更
+          root                             ルートの表示
+          root PATH                        ルートの変更
+          add FILE…                        ファイルを追加
+          rm FILE…                         ファイルを削除
+          rm -rf DIRECTORY                 ディレクトリを削除
+          backup                           更新されたファイルをバックアップ
+          restore                          更新されたファイルを復元
+          tree                             ツリー表示（要treeコマンド）
+          tig                              tigで表示（要tigコマンド）
+          path                             リポジトリのパスを表示
+          list                             一覧表示

@@ -1,0 +1,18 @@
+en:
+  usage:
+    help: Show this message
+    commands: |
+      commands:
+          repo                             Show repositories
+          repo REPO                        Change repository
+          root                             Show root
+          root PATH                        Change root
+          add FILE…                        Add files
+          rm FILE…                         Remove files
+          rm -rf DIRECTORY                 Remove directories
+          backup                           Backup
+          restore                          Restore
+          tree                             Show tree(require tree)
+          tig                              Show by tig(require tig)
+          path                             Show repository path
+          list                             Show file list

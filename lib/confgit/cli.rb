@@ -2,34 +2,21 @@
 
 
 require 'optparse'
+require 'rubygems'
+require 'i18n'
 
 
 module Confgit
 
 class CLI
 
-	COMMANDS = <<EOD
-commands:
-    repo                             リポジトリ一覧の表示
-    repo REPO                        カレントリポジトリの変更
-    root                             ルートの表示
-    root PATH                        ルートの変更
-    add FILE…                        ファイルを追加
-    rm FILE…                         ファイルを削除
-    rm -rf DIRECTORY                 ディレクトリを削除
-    backup                           バックアップ
-    restore                          リストア
-    tree                             ツリー表示（要treeコマンド）
-    tig                              tigで表示（要tigコマンド）
-    path                             リポジトリのパスを表示
-    list                             一覧表示
-EOD
-
 	def self.run(argv = ARGV, options = {})
 		CLI.new.run(argv, options)
 	end
 
 	def run(argv = ARGV, options = {})
+		i18n_init
+
 		trap ('SIGINT') { abort '' }
 
 		# コマンド引数の解析
@@ -40,9 +27,9 @@ EOD
 				opts.version = LONG_VERSION || VERSION
 				opts.banner = "Usage: #{opts.program_name} <command> [<args>]"
 
-				opts.on('-h', '--help', 'Show this message')	{ abort opts.help }
+				opts.on('-h', '--help', t(:help))	{ abort opts.help }
 				opts.separator ''
-				opts.separator COMMANDS
+				opts.separator t(:commands)
 
 				opts.order!(argv)
 				command = argv.shift
@@ -53,6 +40,20 @@ EOD
 		}
 
 		action(command, argv, options)
+	end
+
+	# I18n を初期化する
+	def i18n_init
+		I18n.load_path = Dir[File.expand_path('../locales/*.yml', __FILE__)]
+		I18n.backend.load_translations
+
+		I18n.locale = ENV['LANG'][0, 2] if ENV['LANG']
+	end
+
+	# I18n で翻訳する
+	def t(code, options = {})
+		options[:scope] ||= [:usage]
+		I18n.t(code, options)
 	end
 
 	# アクションの実行

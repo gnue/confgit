@@ -18,6 +18,7 @@ Gem::Specification.new do |gem|
   gem.require_paths = ["lib"]
 
   # dependency
+  gem.add_dependency('i18n')
   gem.add_dependency('json')
 
   # for development
