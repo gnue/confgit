@@ -479,7 +479,7 @@ class Repo
 	
 					from = File.join(path, file)
 					to = File.join(repo, relative_path(from))
-	
+
 					if filecopy(from, to)
 						git('add', to)
 					end
