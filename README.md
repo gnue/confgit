@@ -16,6 +16,15 @@ Or install it yourself as:
 
     $ gem install confgit
 
+## 必要なソフトウェア
+
+* 必須
+  * ruby（1.9.3 でのみ動作確認）
+  * git
+* オプション
+  * tree
+  * tig
+
 ## Usage
 
 固有のサブコマンドとgitのサブコマンドが使用できます
@@ -73,16 +82,6 @@ Or install it yourself as:
 
 * そのたままだと書込み権限がないので sudo で実行する
 
-俯瞰する
-
-	$ confgit tree
-	.
-	└── etc
-	    ├── apache2
-	    │   └── httpd.conf
-	    └── postfix
-	        └── aliases
-
 #### ユーザ環境の管理
 
 リポジトリを変更してルートをホームディレクトリにする
@@ -112,14 +111,29 @@ Or install it yourself as:
 	$ confgit restore
 	<-- .bash_profile [yN]: y
 
+#### Tips
+
 俯瞰する
 
 	$ confgit tree -a
 	.
-	├── .bash_profile
-	└── .bashrc
+	├── Users
+	|   └── foo
+	|       ├── .bash_profile
+	|       └── .bashrc
+	└── etc
+	    ├── apache2
+	    │   └── httpd.conf
+	    └── postfix
+	        └── aliases
 
 * ドットファイルは -a を付けて表示する
+
+リポジトリに cd して直接ファイルを編集や git の操作をしたいとき
+
+	$ pushd `confgit path`
+	（作業）
+	$ popd
 
 ## Directory
 
@@ -142,3 +156,4 @@ Or install it yourself as:
 * user/group の情報を保存
 * user/group の情報を復元
 * リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
+* confgit -h の英語対応
