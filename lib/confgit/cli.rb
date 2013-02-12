@@ -17,8 +17,8 @@ commands:
     add FILE…                        ファイルを追加
     rm FILE…                         ファイルを削除
     rm -rf DIRECTORY                 ディレクトリを削除
-    backup                           バックアップ（更新されたもののみ）
-    restore                          リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
+    backup                           バックアップ
+    restore                          リストア
     tree                             ツリー表示（要treeコマンド）
     tig                              tigで表示（要tigコマンド）
     path                             リポジトリのパスを表示
