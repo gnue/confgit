@@ -2,6 +2,13 @@
 
 設定ファイルを git で管理するためのツール
 
+## Features
+
+* 分散している設定ファイルを一括管理
+* バージョン管理できる
+* 一度ファイルを登録すると以後は backup/restore サブコマンドで簡単管理
+* 慣れ親しんだ（？）git のサブコマンドがそのまま使える
+
 ## Installation
 
 Add this line to your application's Gemfile:
