@@ -18,6 +18,10 @@ Or install it yourself as:
 
 ## Usage
 
+固有のサブコマンドとgitのサブコマンドが使用できます
+
+### 固有のサブコマンド一覧
+
 	$ confgit repo						# リポジトリ一覧の表示
 	$ confgit repo リポジトリ名			# カレントリポジトリの変更
 	$ confgit root						# ルートの表示
@@ -28,12 +32,94 @@ Or install it yourself as:
 	$ confgit rm -rf ディレクトリ名		# ディレクトリを削除
 	$ confgit backup					# バックアップ（更新されたもののみ）
 	$ confgit backup -f					# 強制バックアップ
-	$ confgit restore					# リストア（更新されたもののみ、まだ実際のファイルコピーは行えません）
-	$ confgit restore -f				# 強制リストア（まだ実際のファイルコピーは行えません）
+	$ confgit restore					# リストア（更新されたもののみ）
+	$ confgit restore -f				# 強制リストア
 	$ confgit tree						# ツリー表示（要treeコマンド）
 	$ confgit tig						# tigで表示（要tigコマンド）
 	$ confgit path						# リポジトリのパスを表示
 	$ confgit list						# 一覧表示
+
+### gitのサブコマンド
+
+	$ confgit commit -m 'ログ'
+	$ confgit status
+	$ confgit log
+	$ confgit reset --hard
+	$ confgit branch ブランチ名
+	$ confgit tag タグ名
+
+* その他 git のサブコマンドがそのまま使えます
+
+### 使用例
+
+#### システム環境の管理
+
+管理するファイルを追加してコミット
+
+	$ confgit add /etc/apache2/httpd.conf
+	$ confgit add /etc/postfix/aliases
+	$ confgit commit -m '設定を追加'
+
+変更されたファイルをバックアップする
+
+	$ confgit backup
+	--> etc/apache2/httpd.conf [yN]: y
+	$ confgit commit -m '設定を変更'
+
+変更されたファイルを復元する
+
+	$ sudo confgit restore
+	<-- etc/apache2/httpd.conf [yN]: y
+
+* そのたままだと書込み権限がないので sudo で実行する
+
+俯瞰する
+
+	$ confgit tree
+	.
+	└── etc
+	    ├── apache2
+	    │   └── httpd.conf
+	    └── postfix
+	        └── aliases
+
+#### ユーザ環境の管理
+
+リポジトリを変更してルートをホームディレクトリにする
+
+	$ confgit repo myconfig
+	$ confgit root ~
+
+* ルートの変更は初回のみ行うようにする（ファイルを追加したあとに変更すると整合性がとれなくなってしまうので注意）
+* ルートを変更することによりホームディレクトリからのパスで記録される（treeサブコマンドで確認すると違いが一目瞭然）
+* リポジトリはいくつでも作成できるので、管理対象に合わせてルートを変更して使い分けてもよい
+
+管理するファイルを追加してコミット
+
+	$ confgit add ~/.bash_profile
+	$ confgit add ~/.bashrc
+	$ confgit commit -m '設定を追加'
+
+変更されたファイルをバックアップする
+
+	$ emacs ~/.bash_profile
+	$ confgit backup
+	--> .bash_profile [yN]: y
+	$ confgit commit -m '設定を変更'
+
+変更されたファイルを復元する
+
+	$ confgit restore
+	<-- .bash_profile [yN]: y
+
+俯瞰する
+
+	$ confgit tree -a
+	.
+	├── .bash_profile
+	└── .bashrc
+
+* ドットファイルは -a を付けて表示する
 
 ## Directory
 
