@@ -143,6 +143,13 @@ Or install it yourself as:
 	    ├── current			-- カレントリポジトリへのシンボリックリンク
 	    └── `hostname`		-- リポジトリ（デフォルト）
 
+## TODO
+
+* user/group の情報を保存
+* user/group の情報を復元
+* リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
+* confgit -h の英語対応
+
 ## Contributing
 
 1. Fork it
@@ -150,10 +157,3 @@ Or install it yourself as:
 3. Commit your changes (`git commit -am 'Add some feature'`)
 4. Push to the branch (`git push origin my-new-feature`)
 5. Create new Pull Request
-
-## TODO
-
-* user/group の情報を保存
-* user/group の情報を復元
-* リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
-* confgit -h の英語対応
