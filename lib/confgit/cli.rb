@@ -1,5 +1,4 @@
-# coding: UTF-8
-
+# -*- encoding: utf-8 -*-
 
 require 'optparse'
 require 'rubygems'
