@@ -166,7 +166,7 @@ bash で補完機能を使う
 * user/group の情報を保存
 * user/group の情報を復元
 * リストアで書込み権限がない場合は sudo でファイルコピーを行えるようにする
-* confgit -h の英語対応
+* `confgit サブコマンド -h` のローカライズ
 
 ## Contributing
 
