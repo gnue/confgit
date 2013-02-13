@@ -26,7 +26,7 @@ Or install it yourself as:
 ## 必要なソフトウェア
 
 * 必須
-  * ruby（1.9.3 でのみ動作確認）
+  * ruby 1.9以上（1.9.3 でのみ動作確認）
   * git
 * オプション
   * tree

@@ -17,6 +17,8 @@ Gem::Specification.new do |gem|
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
 
+  gem.required_ruby_version = '>= 1.9.0'
+
   # dependency
   gem.add_dependency('i18n')
   gem.add_dependency('json')
