@@ -24,4 +24,16 @@ Gem::Specification.new do |gem|
   # for development
   gem.add_development_dependency('minitest')
   gem.add_development_dependency('turn')
+
+  gem.post_install_message = %Q{
+    ==================
+    This software requires 'git'.
+    Also optional softwares 'tree' and 'tig'.
+
+    If you are using the bash-completion
+
+      $ cp `gem env gemdir`/gems/confgit-#{gem.version}/etc/bash_completion.d/confgit $BASH_COMPLETION_DIR
+
+    ==================
+  }
 end
