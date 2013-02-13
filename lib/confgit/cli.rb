@@ -82,7 +82,7 @@ class CLI
 			OptionParser.new { |opts|
 				begin
 					opts.banner = banner(opts, command, *banner)
-					block.call(opts, argv, options)
+					instance_exec(opts, argv, options, &block)
 				rescue => e
 					abort e.to_s
 				end
