@@ -5,6 +5,20 @@ require 'confgit'
 
 
 describe Confgit do
+	class String
+		# １行目のインデントだけ全体のインデントを削除する
+		def cut_indent(prefix = '')
+			prefix = Regexp.escape(prefix)
+
+			if self =~ /^(\s+#{prefix})/
+				indent = Regexp.escape($1)
+				self.gsub(/^#{indent}/,'')
+			else
+				self
+			end
+		end
+	end
+
 	# 引数の最後が Hash ならオプションとして取出す
 	def arg_last_options(args)
 		if args.last && args.last.kind_of?(Hash)
@@ -77,7 +91,7 @@ describe Confgit do
 			proc {
 				confgit 'repo', name
 				confgit 'repo'
-			}.must_output <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.cut_indent
 				* #{name}
 				  #{@hostname}
 			EOD
@@ -91,7 +105,7 @@ describe Confgit do
 				confgit 'repo', name2
 				confgit 'repo', '-d', name1
 				confgit 'repo'
-			}.must_output <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.cut_indent
 				* #{name2}
 				  #{@hostname}
 			EOD
@@ -104,7 +118,7 @@ describe Confgit do
 				confgit 'repo', '-d', name
 				@abort == "'#{name}' is current repository!\n"
 				confgit 'repo'
-			}.must_output <<-EOD.gsub(/^\t+/,'')
+			}.must_output <<-EOD.cut_indent
 				* #{name}
 				  #{@hostname}
 			EOD
@@ -145,7 +159,7 @@ describe Confgit do
 		it "add FILE" do
 			chroot('README') { |root, file|
 				confgit 'add', file
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					#
 					# Initial commit
@@ -164,7 +178,7 @@ describe Confgit do
 
 			chroot(File.join(dir, 'README')) { |root, file|
 				confgit 'add', dir
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					#
 					# Initial commit
@@ -186,7 +200,7 @@ describe Confgit do
 
 				capture_io { confgit 'commit', '-m', "add #{file}" }
 				proc { confgit 'rm', file }.must_output "rm '#{file}'\n"
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -202,7 +216,7 @@ describe Confgit do
 				confgit 'add', file
 
 				proc { confgit 'rm', '-f', file }.must_output "rm '#{file}'\n"
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					#
 					# Initial commit
@@ -220,7 +234,7 @@ describe Confgit do
 
 				capture_io { confgit 'commit', '-m', "add #{dir}" }
 				proc { confgit 'rm', '-r', dir }.must_output "rm '#{file}'\n"
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					# Changes to be committed:
 					#   (use "git reset HEAD <file>..." to unstage)
@@ -238,7 +252,7 @@ describe Confgit do
 				confgit 'add', dir
 
 				proc { confgit 'rm', '-rf', dir }.must_output "rm '#{file}'\n"
-				proc { confgit 'status' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					#
 					# Initial commit
@@ -263,7 +277,7 @@ describe Confgit do
 
 		it "backup -n" do
 			chroot { |root, *files|
-				proc { confgit 'backup', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'backup', '-n' }.must_output <<-EOD.cut_indent
 					\e[34m--> #{@mod_file}\e[m
 					# On branch master
 					nothing to commit (working directory clean)
@@ -273,7 +287,7 @@ describe Confgit do
 
 		it "backup -y" do
 			chroot { |root, *files|
-				proc { confgit 'backup', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'backup', '-y' }.must_output <<-EOD.cut_indent
 					\e[34m--> VERSION\e[m
 					# On branch master
 					# Changes not staged for commit:
@@ -291,7 +305,7 @@ describe Confgit do
 			chroot { |root, *files|
 				File.delete @mod_file
 
-				proc { confgit 'backup', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'backup', '-fn' }.must_output <<-EOD.cut_indent
 					\e[34m--> LICENSE.txt\e[m
 					\e[34m--> README\e[m
 					\e[31m[?] #{@mod_file}\e[m
@@ -318,7 +332,7 @@ describe Confgit do
 				open(@mod_file, 'w') { |f| f.puts @data }
 
 				modfile(@mod_file) { |prev|
-					proc { confgit 'restore', '-n' }.must_output <<-EOD.gsub(/^\t+/,'')
+					proc { confgit 'restore', '-n' }.must_output <<-EOD.cut_indent
 						\e[34m<-- #{@mod_file}\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
@@ -331,7 +345,7 @@ describe Confgit do
 				modfile(@mod_file) { |prev|
 					open(@mod_file, 'w') { |f| f.puts @data }
 
-					proc { confgit 'restore', '-y' }.must_output <<-EOD.gsub(/^\t+/,'')
+					proc { confgit 'restore', '-y' }.must_output <<-EOD.cut_indent
 						\e[34m<-- #{@mod_file}\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
@@ -343,7 +357,7 @@ describe Confgit do
 			chroot { |root, *files|
 				File.delete @mod_file
 
-				proc { confgit 'restore', '-fn' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'restore', '-fn' }.must_output <<-EOD.cut_indent
 					\e[34m<-- LICENSE.txt\e[m
 					\e[34m<-- README\e[m
 					\e[35m<-- #{@mod_file}\e[m
@@ -359,10 +373,10 @@ describe Confgit do
 				out, err, status = capture_io { confgit 'commit', '-m', "add #{file}" }
 				err.must_be_empty
 				status.must_be_nil
-				out.must_match <<-EOD.gsub(/^\t+/,'')
-
-					 0 files changed
-					 create mode 100644 #{file}
+				out.must_match <<-EOD.cut_indent('|')
+					|
+					| 0 files changed
+					| create mode 100644 #{file}
 				EOD
 			}
 		end
@@ -379,7 +393,7 @@ describe Confgit do
 		it "list" do
 			chroot { |root, *files|
 				out, err, status = capture_io { confgit 'list' }
-				out.must_match Regexp.new <<-EOD.gsub(/^\t+/,'')
+				out.must_match Regexp.new <<-EOD.cut_indent
 					-rw-r--r--	.+	.+	#{root}/LICENSE\.txt
 					-rw-r--r--	.+	.+	#{root}/README
 					-rw-r--r--	.+	.+	#{root}/VERSION
@@ -390,7 +404,7 @@ describe Confgit do
 		it "list -8" do
 			chroot { |root, *files|
 				out, err, status = capture_io { confgit 'list', '-8' }
-				out.must_match Regexp.new <<-EOD.gsub(/^\t+/,'')
+				out.must_match Regexp.new <<-EOD.cut_indent
 					100644	.+	.+	#{root}/LICENSE\.txt
 					100644	.+	.+	#{root}/README
 					100644	.+	.+	#{root}/VERSION
@@ -409,7 +423,7 @@ describe Confgit do
 
 		it "tree" do
 			chroot { |root, *files|
-				proc { confgit 'tree' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'tree' }.must_output <<-EOD.cut_indent
 					.
 					├── README
 					├── VERSION
@@ -423,7 +437,7 @@ describe Confgit do
 
 		it "tree -a" do
 			chroot { |root, *files|
-				proc { confgit 'tree', '-a' }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'tree', '-a' }.must_output <<-EOD.cut_indent
 					.
 					├── .version
 					├── README
@@ -438,7 +452,7 @@ describe Confgit do
 
 		it "tree DIR" do
 			chroot { |root, *files|
-				proc { confgit 'tree', @dir }.must_output <<-EOD.gsub(/^\t+/,'')
+				proc { confgit 'tree', @dir }.must_output <<-EOD.cut_indent
 					#{@dir}
 					└── LICENSE.txt
 
