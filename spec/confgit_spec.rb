@@ -282,6 +282,25 @@ describe Confgit do
 				EOD
 			}
 		end
+
+		it "rm -f SYMLINK" do
+			dir = 'misc'
+			dummy = 'misc_symlink'
+
+			chroot(File.join(dir, 'README')) { |root, file|
+				File.symlink(dir, dummy)
+				confgit 'add', dummy
+
+				proc { confgit 'rm', '-f', dummy }.must_output "rm '#{dummy}'\n"
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
+					# On branch master
+					#
+					# Initial commit
+					#
+					nothing to commit (create/copy files and use "git add" to track)
+				EOD
+			}
+		end
 	end
 
 	describe "backup" do
