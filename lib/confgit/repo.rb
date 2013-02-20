@@ -281,10 +281,13 @@ class Repo
 				File.unlink(to)
 			end
 
-			FileUtils.copy(from, to)
+			FileUtils.copy_entry(from, to)
 			stat = File.stat(from)
-			File.utime(stat.atime, stat.mtime, to)
-			File.chmod(stat.mode, to)
+
+			unless File.symlink?(to)
+				File.utime(stat.atime, stat.mtime, to)
+				File.chmod(stat.mode, to)
+			end
 
 			return true
 		rescue => e
@@ -478,23 +481,25 @@ class Repo
 				next
 			end
 
-			if File.directory?(path)
+			if File.directory?(path) && ! File.symlink?(path)
 				dir_each(path) { |file|
 					next if File.directory?(file)
 	
 					from = File.join(path, file)
-					to = File.join(repo, relative_path(from))
+					rel = relative_path(from)
+					to = File.join(repo, rel)
 
 					if filecopy(from, to)
-						git('add', to)
+						git('add', rel)
 					end
 				}
 			else
 				from = path
-				to = File.join(repo, relative_path(from))
+				rel = relative_path(from)
+				to = File.join(repo, rel)
 
 				if filecopy(from, to)
-					git('add', to)
+					git('add', rel)
 				end
 			end
 		}
@@ -508,7 +513,7 @@ class Repo
 		repo = File.realpath(@repo_path)
 
 		files = args.collect { |from|
-			File.join(repo, relative_path(expand_path(from)))
+			relative_path(expand_path(from))
 		}
 
 		git('rm', *(options + files), :interactive => false)

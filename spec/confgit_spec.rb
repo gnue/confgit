@@ -191,6 +191,27 @@ describe Confgit do
 				EOD
 			}
 		end
+
+		it "add SYMLINK" do
+			dir = 'misc'
+			dummy = 'misc_symlink'
+
+			chroot(File.join(dir, 'README')) { |root, file|
+				File.symlink(dir, dummy)
+				confgit 'add', dummy
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
+					# On branch master
+					#
+					# Initial commit
+					#
+					# Changes to be committed:
+					#   (use "git rm --cached <file>..." to unstage)
+					#
+					#	new file:   #{dummy}
+					#
+				EOD
+			}
+		end
 	end
 
 	describe "rm" do
@@ -252,6 +273,25 @@ describe Confgit do
 				confgit 'add', dir
 
 				proc { confgit 'rm', '-rf', dir }.must_output "rm '#{file}'\n"
+				proc { confgit 'status' }.must_output <<-EOD.cut_indent
+					# On branch master
+					#
+					# Initial commit
+					#
+					nothing to commit (create/copy files and use "git add" to track)
+				EOD
+			}
+		end
+
+		it "rm -f SYMLINK" do
+			dir = 'misc'
+			dummy = 'misc_symlink'
+
+			chroot(File.join(dir, 'README')) { |root, file|
+				File.symlink(dir, dummy)
+				confgit 'add', dummy
+
+				proc { confgit 'rm', '-f', dummy }.must_output "rm '#{dummy}'\n"
 				proc { confgit 'status' }.must_output <<-EOD.cut_indent
 					# On branch master
 					#
