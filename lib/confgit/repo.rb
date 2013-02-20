@@ -513,7 +513,7 @@ class Repo
 		repo = File.realpath(@repo_path)
 
 		files = args.collect { |from|
-			File.join(repo, relative_path(expand_path(from)))
+			relative_path(expand_path(from))
 		}
 
 		git('rm', *(options + files), :interactive => false)
