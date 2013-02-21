@@ -379,23 +379,46 @@ describe Confgit do
 	end
 
 	describe "restore" do
-		before do
-			@mod_file = 'VERSION'
-			@data = '0.0.1'
+		def udpate_data
+			open(@mod_file, 'w') { |f| f.puts @data }
+			File.delete @del_file
 
-			chroot(@mod_file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
+			@symlinks.each { |key, value|
+				old, file = value
+				next unless file
+
+				File.delete(key)
+				File.symlink(file, key)
+			}
+		end
+
+		before do
+			dir = 'misc'
+			@mod_file = 'VERSION'
+			@del_file = 'LICENSE.txt'
+			@data = '0.0.1'
+			@symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
+
+			chroot(@mod_file, @del_file, 'README', File.join(dir, 'README')) { |root, *files|
+				@symlinks.each { |key, value|
+					file, = value
+					File.symlink(file, key)
+				}
+
+				confgit 'add', *(files + @symlinks.keys)
 				capture_io { confgit 'commit', '-m', "add #{files}" }
 			}
 		end
 
 		it "restore -n" do
 			chroot { |root, *files|
-				open(@mod_file, 'w') { |f| f.puts @data }
+				udpate_data
 
 				modfile(@mod_file) { |prev|
 					proc { confgit 'restore', '-n' }.must_output <<-EOD.cut_indent
+						\e[35m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
 				}
@@ -405,10 +428,12 @@ describe Confgit do
 		it "restore -y" do
 			chroot { |root, *files|
 				modfile(@mod_file) { |prev|
-					open(@mod_file, 'w') { |f| f.puts @data }
+					udpate_data
 
 					proc { confgit 'restore', '-y' }.must_output <<-EOD.cut_indent
+						\e[35m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
 				}
@@ -417,12 +442,16 @@ describe Confgit do
 
 		it "restore -fn" do
 			chroot { |root, *files|
-				File.delete @mod_file
+				udpate_data
 
 				proc { confgit 'restore', '-fn' }.must_output <<-EOD.cut_indent
-					\e[34m<-- LICENSE.txt\e[m
+					\e[35m<-- #{@del_file}\e[m
 					\e[34m<-- README\e[m
-					\e[35m<-- #{@mod_file}\e[m
+					\e[34m<-- #{@mod_file}\e[m
+					\e[34m<-- dir_link\e[m
+					\e[34m<-- file_link\e[m
+					\e[34m<-- misc/README\e[m
+					\e[34m<-- mod_link\e[m
 				EOD
 			}
 		end
