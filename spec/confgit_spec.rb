@@ -475,8 +475,16 @@ describe Confgit do
 
 	describe "list" do
 		before do
-			chroot('VERSION', 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
+			dir = 'misc'
+			symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
+
+			chroot('VERSION', 'README', 'LICENSE.txt', File.join(dir, 'README')) { |root, *files|
+				symlinks.each { |key, value|
+					file, = value
+					File.symlink(file, key)
+				}
+
+				confgit 'add', *(files + symlinks.keys)
 				capture_io { confgit 'commit', '-m', "add #{files}" }
 			}
 		end
@@ -488,6 +496,10 @@ describe Confgit do
 					-rw-r--r--	.+	.+	#{root}/LICENSE\.txt
 					-rw-r--r--	.+	.+	#{root}/README
 					-rw-r--r--	.+	.+	#{root}/VERSION
+					l---------	.+	.+	#{root}/dir_link
+					l---------	.+	.+	#{root}/file_link
+					-rw-r--r--	.+	.+	#{root}/misc/README
+					l---------	.+	.+	#{root}/mod_link
 				EOD
 			}
 		end
@@ -499,6 +511,10 @@ describe Confgit do
 					100644	.+	.+	#{root}/LICENSE\.txt
 					100644	.+	.+	#{root}/README
 					100644	.+	.+	#{root}/VERSION
+					120000	.+	.+	#{root}/dir_link
+					120000	.+	.+	#{root}/file_link
+					100644	.+	.+	#{root}/misc/README
+					120000	.+	.+	#{root}/mod_link
 				EOD
 			}
 		end
