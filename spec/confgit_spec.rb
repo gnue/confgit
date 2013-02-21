@@ -416,7 +416,7 @@ describe Confgit do
 
 				modfile(@mod_file) { |prev|
 					proc { confgit 'restore', '-n' }.must_output <<-EOD.cut_indent
-						\e[35m<-- #{@del_file}\e[m
+						\e[34m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
 						\e[34m<-- mod_link\e[m
 					EOD
@@ -431,7 +431,7 @@ describe Confgit do
 					udpate_data
 
 					proc { confgit 'restore', '-y' }.must_output <<-EOD.cut_indent
-						\e[35m<-- #{@del_file}\e[m
+						\e[34m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
 						\e[34m<-- mod_link\e[m
 					EOD
@@ -445,7 +445,7 @@ describe Confgit do
 				udpate_data
 
 				proc { confgit 'restore', '-fn' }.must_output <<-EOD.cut_indent
-					\e[35m<-- #{@del_file}\e[m
+					\e[34m<-- #{@del_file}\e[m
 					\e[34m<-- README\e[m
 					\e[34m<-- #{@mod_file}\e[m
 					\e[34m<-- dir_link\e[m

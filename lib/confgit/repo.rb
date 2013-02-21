@@ -290,6 +290,8 @@ class Repo
 	# ファイルが書込み可能か？（シンボリックリンクの場合はわからないのでとりあえず true を返す）
 	def file_writable_real?(path)
 		return true if File.symlink?(path)
+		return File.writable_real?(File.dirname(path)) unless File.exist?(path)
+
 		File.writable_real?(path)
 	end
 
