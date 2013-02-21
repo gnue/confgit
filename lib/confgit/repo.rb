@@ -247,9 +247,16 @@ class Repo
 	# ファイルの hash値を求める
 	def hash_object(file)
 		path = File.expand_path(file)
-		open("| git hash-object \"#{path}\"") {|f|
-			return f.gets.chomp
-		}
+
+		if File.symlink?(path)
+			mode = '120000'
+			hash = `readlink "#{path}" | git hash-object --stdin`.chomp
+		else
+			mode = File.executable?(path) ? '100755' : '100644'
+			hash = `git hash-object "#{path}"`.chomp
+		end
+
+		"#{mode} #{hash}"
 	end
 
 	# 確認プロンプトを表示する
@@ -270,21 +277,40 @@ class Repo
 		y
 	end
 
+	# ファイルが存在するか？（シンボリックリンクの場合も対象にする）
+	def file_exist?(path)
+		File.exist?(path) || File.symlink?(path)
+	end
+
+	# ファイルがディレクトリか？（シンボリックリンクの場合は対象外）
+	def file_directory?(path)
+		File.directory?(path) && ! File.symlink?(path)
+	end
+
+	# ファイルが書込み可能か？（シンボリックリンクの場合はわからないのでとりあえず true を返す）
+	def file_writable_real?(path)
+		return true if File.symlink?(path)
+		File.writable_real?(path)
+	end
+
 	# ファイルのコピー（属性は維持する）
 	def filecopy(from, to, exiting = false)
 		begin
 			to_dir = File.dirname(to)
 			FileUtils.mkpath(to_dir)
 
-			if File.exist?(to) && ! File.writable_real?(to)
+			if File.symlink?(to)
+				# シンボリックリンクの場合は削除する
+				File.unlink(to)
+			elsif File.exist?(to) && ! File.writable_real?(to)
 				# 書込みできない場合は削除を試みる
 				File.unlink(to)
 			end
 
 			FileUtils.copy_entry(from, to)
-			stat = File.stat(from)
 
-			unless File.symlink?(to)
+			unless File.symlink?(from) || File.symlink?(to)
+				stat = File.stat(from)
 				File.utime(stat.atime, stat.mtime, to)
 				File.chmod(stat.mode, to)
 			end
@@ -327,7 +353,7 @@ class Repo
 
 #					file = line.chomp
 					next if /^\.git/ =~ file
-					next if File.directory?(file)
+					next if file_directory?(file)
 
 					yield(file, hash)
 				end
@@ -386,7 +412,7 @@ class Repo
 
 	# ファイルの更新チェック
 	def modfile?(from, to)
-		! File.exist?(to) || hash_object(from) != hash_object(to)
+		! file_exist?(to) || hash_object(from) != hash_object(to)
 	end
 
 	# ファイル属性を文字列にする
@@ -481,7 +507,7 @@ class Repo
 				next
 			end
 
-			if File.directory?(path) && ! File.symlink?(path)
+			if file_directory?(path)
 				dir_each(path) { |file|
 					next if File.directory?(file)
 	
@@ -522,12 +548,12 @@ class Repo
 	# バックアップする
 	def confgit_backup(options, *args)
 		git_each(*args) { |file, hash|
-			next if File.directory?(file)
+			next if file_directory?(file)
 
 			from = File.join(root, file)
 			to = File.join(@repo_path, file)
 
-			unless File.exist?(from)
+			unless file_exist?(from)
 				with_color(:fg_red) { print "[?] #{file}" }
 				puts
 				next
@@ -554,19 +580,19 @@ class Repo
 	# リストアする
 	def confgit_restore(options, *args)
 		git_each(*args) { |file, hash|
-			next if File.directory?(file)
+			next if file_directory?(file)
 
 			from = File.join(@repo_path, file)
 			to = File.join(root, file)
 
-			unless File.exist?(from)
+			unless file_exist?(from)
 				with_color(:fg_red) { print "[?] #{file}" }
 				puts
 				next
 			end
 
 			if options[:force] || modfile?(from, to)
-				color = File.writable_real?(to) ? :fg_blue : :fg_magenta
+				color = file_writable_real?(to) ? :fg_blue : :fg_magenta
 				with_color(color) { print "<-- #{file}" }
 				write = options[:yes]
 
@@ -585,12 +611,16 @@ class Repo
 	# 一覧表示する
 	def confgit_list(options, *args)
 		git_each(*args) { |file, hash|
-			next if File.directory?(file)
+			next if file_directory?(file)
 
 			from = File.join(root, file)
 			to = File.join(@repo_path, file)
 
-			if File.exist?(from)
+			if File.symlink?(from)
+				mode = options[:octal] ? '120000' : 'l---------'
+				user = '-'
+				group = '-'
+			elsif File.exist?(from)
 				stat = File.stat(from)
 				mode = options[:octal] ? stat.mode.to_s(8) : mode2str(stat.mode)
 				user = Etc.getpwuid(stat.uid).name

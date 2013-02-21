@@ -305,13 +305,28 @@ describe Confgit do
 
 	describe "backup" do
 		before do
+			dir = 'misc'
 			@mod_file = 'VERSION'
 			@data = '0.0.1'
+			@symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
 
-			chroot(@mod_file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
+			chroot(@mod_file, 'README', 'LICENSE.txt', File.join(dir, 'README')) { |root, *files|
+				@symlinks.each { |key, value|
+					file, = value
+					File.symlink(file, key)
+				}
+
+				confgit 'add', *(files + @symlinks.keys)
 				capture_io { confgit 'commit', '-m', "add #{files}" }
 				open(@mod_file, 'w') { |f| f.puts @data }
+
+				@symlinks.each { |key, value|
+					old, file = value
+					next unless file
+
+					File.delete(key)
+					File.symlink(file, key)
+				}
 			}
 		end
 
@@ -319,6 +334,7 @@ describe Confgit do
 			chroot { |root, *files|
 				proc { confgit 'backup', '-n' }.must_output <<-EOD.cut_indent
 					\e[34m--> #{@mod_file}\e[m
+					\e[34m--> mod_link\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -329,12 +345,14 @@ describe Confgit do
 			chroot { |root, *files|
 				proc { confgit 'backup', '-y' }.must_output <<-EOD.cut_indent
 					\e[34m--> VERSION\e[m
+					\e[34m--> mod_link\e[m
 					# On branch master
 					# Changes not staged for commit:
 					#   (use "git add <file>..." to update what will be committed)
 					#   (use "git checkout -- <file>..." to discard changes in working directory)
 					#
 					#	modified:   #{@mod_file}
+					#	modified:   mod_link
 					#
 					no changes added to commit (use "git add" and/or "git commit -a")
 				EOD
@@ -349,6 +367,10 @@ describe Confgit do
 					\e[34m--> LICENSE.txt\e[m
 					\e[34m--> README\e[m
 					\e[31m[?] #{@mod_file}\e[m
+					\e[34m--> dir_link\e[m
+					\e[34m--> file_link\e[m
+					\e[34m--> misc/README\e[m
+					\e[34m--> mod_link\e[m
 					# On branch master
 					nothing to commit (working directory clean)
 				EOD
@@ -357,23 +379,46 @@ describe Confgit do
 	end
 
 	describe "restore" do
-		before do
-			@mod_file = 'VERSION'
-			@data = '0.0.1'
+		def udpate_data
+			open(@mod_file, 'w') { |f| f.puts @data }
+			File.delete @del_file
 
-			chroot(@mod_file, 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
+			@symlinks.each { |key, value|
+				old, file = value
+				next unless file
+
+				File.delete(key)
+				File.symlink(file, key)
+			}
+		end
+
+		before do
+			dir = 'misc'
+			@mod_file = 'VERSION'
+			@del_file = 'LICENSE.txt'
+			@data = '0.0.1'
+			@symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
+
+			chroot(@mod_file, @del_file, 'README', File.join(dir, 'README')) { |root, *files|
+				@symlinks.each { |key, value|
+					file, = value
+					File.symlink(file, key)
+				}
+
+				confgit 'add', *(files + @symlinks.keys)
 				capture_io { confgit 'commit', '-m', "add #{files}" }
 			}
 		end
 
 		it "restore -n" do
 			chroot { |root, *files|
-				open(@mod_file, 'w') { |f| f.puts @data }
+				udpate_data
 
 				modfile(@mod_file) { |prev|
 					proc { confgit 'restore', '-n' }.must_output <<-EOD.cut_indent
+						\e[35m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
 				}
@@ -383,10 +428,12 @@ describe Confgit do
 		it "restore -y" do
 			chroot { |root, *files|
 				modfile(@mod_file) { |prev|
-					open(@mod_file, 'w') { |f| f.puts @data }
+					udpate_data
 
 					proc { confgit 'restore', '-y' }.must_output <<-EOD.cut_indent
+						\e[35m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
 				}
@@ -395,12 +442,16 @@ describe Confgit do
 
 		it "restore -fn" do
 			chroot { |root, *files|
-				File.delete @mod_file
+				udpate_data
 
 				proc { confgit 'restore', '-fn' }.must_output <<-EOD.cut_indent
-					\e[34m<-- LICENSE.txt\e[m
+					\e[35m<-- #{@del_file}\e[m
 					\e[34m<-- README\e[m
-					\e[35m<-- #{@mod_file}\e[m
+					\e[34m<-- #{@mod_file}\e[m
+					\e[34m<-- dir_link\e[m
+					\e[34m<-- file_link\e[m
+					\e[34m<-- misc/README\e[m
+					\e[34m<-- mod_link\e[m
 				EOD
 			}
 		end
@@ -424,8 +475,16 @@ describe Confgit do
 
 	describe "list" do
 		before do
-			chroot('VERSION', 'README', 'LICENSE.txt') { |root, *files|
-				confgit 'add', *files
+			dir = 'misc'
+			symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
+
+			chroot('VERSION', 'README', 'LICENSE.txt', File.join(dir, 'README')) { |root, *files|
+				symlinks.each { |key, value|
+					file, = value
+					File.symlink(file, key)
+				}
+
+				confgit 'add', *(files + symlinks.keys)
 				capture_io { confgit 'commit', '-m', "add #{files}" }
 			}
 		end
@@ -437,6 +496,10 @@ describe Confgit do
 					-rw-r--r--	.+	.+	#{root}/LICENSE\.txt
 					-rw-r--r--	.+	.+	#{root}/README
 					-rw-r--r--	.+	.+	#{root}/VERSION
+					l---------	.+	.+	#{root}/dir_link
+					l---------	.+	.+	#{root}/file_link
+					-rw-r--r--	.+	.+	#{root}/misc/README
+					l---------	.+	.+	#{root}/mod_link
 				EOD
 			}
 		end
@@ -448,6 +511,10 @@ describe Confgit do
 					100644	.+	.+	#{root}/LICENSE\.txt
 					100644	.+	.+	#{root}/README
 					100644	.+	.+	#{root}/VERSION
+					120000	.+	.+	#{root}/dir_link
+					120000	.+	.+	#{root}/file_link
+					100644	.+	.+	#{root}/misc/README
+					120000	.+	.+	#{root}/mod_link
 				EOD
 			}
 		end
