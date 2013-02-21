@@ -287,21 +287,30 @@ class Repo
 		File.directory?(path) && ! File.symlink?(path)
 	end
 
+	# ファイルが書込み可能か？（シンボリックリンクの場合はわからないのでとりあえず true を返す）
+	def file_writable_real?(path)
+		return true if File.symlink?(path)
+		File.writable_real?(path)
+	end
+
 	# ファイルのコピー（属性は維持する）
 	def filecopy(from, to, exiting = false)
 		begin
 			to_dir = File.dirname(to)
 			FileUtils.mkpath(to_dir)
 
-			if file_exist?(to) && ! File.writable_real?(to)
+			if File.symlink?(to)
+				# シンボリックリンクの場合は削除する
+				File.unlink(to)
+			elsif File.exist?(to) && ! File.writable_real?(to)
 				# 書込みできない場合は削除を試みる
 				File.unlink(to)
 			end
 
 			FileUtils.copy_entry(from, to)
-			stat = File.stat(from)
 
-			unless File.symlink?(to)
+			unless File.symlink?(from) || File.symlink?(to)
+				stat = File.stat(from)
 				File.utime(stat.atime, stat.mtime, to)
 				File.chmod(stat.mode, to)
 			end
@@ -583,7 +592,7 @@ class Repo
 			end
 
 			if options[:force] || modfile?(from, to)
-				color = File.writable_real?(to) ? :fg_blue : :fg_magenta
+				color = file_writable_real?(to) ? :fg_blue : :fg_magenta
 				with_color(color) { print "<-- #{file}" }
 				write = options[:yes]
 
