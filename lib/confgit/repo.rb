@@ -616,7 +616,11 @@ class Repo
 			from = File.join(root, file)
 			to = File.join(@repo_path, file)
 
-			if file_exist?(from)
+			if File.symlink?(from)
+				mode = options[:octal] ? '120000' : 'l---------'
+				user = '-'
+				group = '-'
+			elsif File.exist?(from)
 				stat = File.stat(from)
 				mode = options[:octal] ? stat.mode.to_s(8) : mode2str(stat.mode)
 				user = Etc.getpwuid(stat.uid).name
