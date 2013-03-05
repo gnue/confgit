@@ -382,6 +382,7 @@ describe Confgit do
 		def udpate_data
 			open(@mod_file, 'w') { |f| f.puts @data }
 			File.delete @del_file
+			FileUtils.remove_entry_secure(@deep_file.split('/').first)
 
 			@symlinks.each { |key, value|
 				old, file = value
@@ -396,10 +397,11 @@ describe Confgit do
 			dir = 'misc'
 			@mod_file = 'VERSION'
 			@del_file = 'LICENSE.txt'
+			@deep_file = 'a/b/c.txt'
 			@data = '0.0.1'
 			@symlinks = {'dir_link' => dir, 'file_link' => 'VERSION', 'mod_link' => ['README', 'LICENSE.txt']}
 
-			chroot(@mod_file, @del_file, 'README', File.join(dir, 'README')) { |root, *files|
+			chroot(@mod_file, @del_file, @deep_file, 'README', File.join(dir, 'README')) { |root, *files|
 				@symlinks.each { |key, value|
 					file, = value
 					File.symlink(file, key)
@@ -418,6 +420,7 @@ describe Confgit do
 					proc { confgit 'restore', '-n' }.must_output <<-EOD.cut_indent
 						\e[34m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- #{@deep_file}\e[m
 						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
@@ -433,6 +436,7 @@ describe Confgit do
 					proc { confgit 'restore', '-y' }.must_output <<-EOD.cut_indent
 						\e[34m<-- #{@del_file}\e[m
 						\e[34m<-- #{@mod_file}\e[m
+						\e[34m<-- #{@deep_file}\e[m
 						\e[34m<-- mod_link\e[m
 					EOD
 					open(@mod_file).read.must_equal prev
@@ -448,6 +452,7 @@ describe Confgit do
 					\e[34m<-- #{@del_file}\e[m
 					\e[34m<-- README\e[m
 					\e[34m<-- #{@mod_file}\e[m
+					\e[34m<-- #{@deep_file}\e[m
 					\e[34m<-- dir_link\e[m
 					\e[34m<-- file_link\e[m
 					\e[34m<-- misc/README\e[m
