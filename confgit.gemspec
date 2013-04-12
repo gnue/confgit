@@ -11,6 +11,7 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Config files management tool with git}
   gem.summary       = %q{Config files management tool with git}
   gem.homepage      = "https://github.com/gnue/confgit"
+  gem.license       = "MIT"
 
   gem.files         = `git ls-files`.split($/) + %w(REVISION)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
