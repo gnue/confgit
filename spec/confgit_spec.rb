@@ -332,11 +332,11 @@ describe Confgit do
 
 		it "backup -n" do
 			chroot { |root, *files|
-				proc { confgit 'backup', '-n' }.must_output <<-EOD.cut_indent
+				out, err, status = capture_io { confgit 'backup', '-n' }
+				out.must_match <<-EOD.cut_indent
 					\e[34m--> #{@mod_file}\e[m
 					\e[34m--> mod_link\e[m
 					# On branch master
-					nothing to commit (working directory clean)
 				EOD
 			}
 		end
@@ -363,7 +363,8 @@ describe Confgit do
 			chroot { |root, *files|
 				File.delete @mod_file
 
-				proc { confgit 'backup', '-fn' }.must_output <<-EOD.cut_indent
+				out, err, status = capture_io { confgit 'backup', '-fn' }
+				out.must_match <<-EOD.cut_indent
 					\e[34m--> LICENSE.txt\e[m
 					\e[34m--> README\e[m
 					\e[31m[?] #{@mod_file}\e[m
@@ -372,7 +373,6 @@ describe Confgit do
 					\e[34m--> misc/README\e[m
 					\e[34m--> mod_link\e[m
 					# On branch master
-					nothing to commit (working directory clean)
 				EOD
 			}
 		end
@@ -470,8 +470,6 @@ describe Confgit do
 				err.must_be_empty
 				status.must_be_nil
 				out.must_match <<-EOD.cut_indent('|')
-					|
-					| 0 files changed
 					| create mode 100644 #{file}
 				EOD
 			}
