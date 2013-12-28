@@ -73,6 +73,11 @@ describe Confgit do
 		prevs
 	end
 
+	# 行をソートする
+	def sort_lines(text)
+		text.split("\n").sort.join("\n")
+	end
+
 	before do
 		require 'tmpdir'
 
@@ -88,40 +93,55 @@ describe Confgit do
 
 		it "repo REPO" do
 			name = '_foo_'
-			proc {
+
+			out, err, status = capture_io {
 				confgit 'repo', name
 				confgit 'repo'
-			}.must_output <<-EOD.cut_indent
+			}
+
+			data = <<-EOD.cut_indent
 				* #{name}
 				  #{@hostname}
 			EOD
+
+			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -d REPO (not current)" do
 			name1 = '_foo_'
 			name2 = '_bar_'
-			proc {
+
+			out, err, status = capture_io {
 				confgit 'repo', name1
 				confgit 'repo', name2
 				confgit 'repo', '-d', name1
 				confgit 'repo'
-			}.must_output <<-EOD.cut_indent
+			}
+
+			data = <<-EOD.cut_indent
 				* #{name2}
 				  #{@hostname}
 			EOD
+
+			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -d REPO (current)" do
 			name = '_foo_'
-			proc {
+
+			out, err, status = capture_io {
 				confgit 'repo', name
 				confgit 'repo', '-d', name
 				@abort == "'#{name}' is current repository!\n"
 				confgit 'repo'
-			}.must_output <<-EOD.cut_indent
+			}
+
+			data = <<-EOD.cut_indent
 				* #{name}
 				  #{@hostname}
 			EOD
+
+			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -D REPO" do
