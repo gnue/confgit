@@ -343,7 +343,8 @@ describe Confgit do
 
 		it "backup -y" do
 			chroot { |root, *files|
-				proc { confgit 'backup', '-y' }.must_output <<-EOD.cut_indent
+				out, err, status = capture_io { confgit 'backup', '-y' }
+				out.must_match <<-EOD.cut_indent
 					\e[34m--> VERSION\e[m
 					\e[34m--> mod_link\e[m
 					# On branch master
