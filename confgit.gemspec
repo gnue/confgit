@@ -22,10 +22,10 @@ Gem::Specification.new do |gem|
 
   # dependency
   gem.add_dependency('i18n')
-  gem.add_dependency('json')
 
   # for development
-  gem.add_development_dependency('minitest')
+  gem.add_development_dependency('rake')
+  gem.add_development_dependency('minitest', '~> 4.7') if Gem.ruby_version < Gem::Version.create('2.0')
   gem.add_development_dependency('turn')
 
   gem.post_install_message = %Q{
