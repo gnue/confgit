@@ -369,18 +369,14 @@ describe Confgit do
 		it "backup -y" do
 			chroot { |root, *files|
 				out, err, status = capture_io { confgit 'backup', '-y' }
-				out.must_match <<-EOD.cut_indent
+				out.must_match Regexp.new <<-EOD.cut_indent.regex_escape_color
 					\e[34m--> VERSION\e[m
 					\e[34m--> mod_link\e[m
 					# On branch master
-					# Changes not staged for commit:
-					#   (use "git add <file>..." to update what will be committed)
-					#   (use "git checkout -- <file>..." to discard changes in working directory)
-					#
+					(#.*\n)+#
 					#	modified:   #{@mod_file}
 					#	modified:   mod_link
 					#
-					no changes added to commit (use "git add" and/or "git commit -a")
 				EOD
 			}
 		end
