@@ -17,6 +17,11 @@ describe Confgit do
 				self
 			end
 		end
+
+		# カラーのエスケープコードを正規表現用にエスケープする
+		def regex_escape_color
+			gsub(/\e\[([0-9])*m/) { |m| Regexp.escape(m) }
+		end
 	end
 
 	# 引数の最後が Hash ならオプションとして取出す
