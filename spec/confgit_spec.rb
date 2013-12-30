@@ -18,6 +18,11 @@ describe Confgit do
 			end
 		end
 
+		# 行をソートする
+		def sort_lines
+			split("\n").sort.join("\n")
+		end
+
 		# カラーのエスケープコードを正規表現用にエスケープする
 		def regex_escape_color
 			gsub(/\e\[([0-9])*m/) { |m| Regexp.escape(m) }
@@ -78,11 +83,6 @@ describe Confgit do
 		prevs
 	end
 
-	# 行をソートする
-	def sort_lines(text)
-		text.split("\n").sort.join("\n")
-	end
-
 	before do
 		require 'tmpdir'
 
@@ -104,12 +104,10 @@ describe Confgit do
 				confgit 'repo'
 			}
 
-			data = <<-EOD.cut_indent
+			out.sort_lines.must_equal <<-EOD.cut_indent.sort_lines
 				* #{name}
 				  #{@hostname}
 			EOD
-
-			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -d REPO (not current)" do
@@ -123,12 +121,10 @@ describe Confgit do
 				confgit 'repo'
 			}
 
-			data = <<-EOD.cut_indent
+			out.sort_lines.must_equal <<-EOD.cut_indent.sort_lines
 				* #{name2}
 				  #{@hostname}
 			EOD
-
-			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -d REPO (current)" do
@@ -141,12 +137,10 @@ describe Confgit do
 				confgit 'repo'
 			}
 
-			data = <<-EOD.cut_indent
+			out.sort_lines.must_equal <<-EOD.cut_indent.sort_lines
 				* #{name}
 				  #{@hostname}
 			EOD
-
-			sort_lines(out).must_equal sort_lines(data)
 		end
 
 		it "repo -D REPO" do
