@@ -11,8 +11,9 @@ Gem::Specification.new do |gem|
   gem.description   = %q{Config files management tool with git}
   gem.summary       = %q{Config files management tool with git}
   gem.homepage      = "https://github.com/gnue/confgit"
+  gem.license       = "MIT"
 
-  gem.files         = `git ls-files`.split($/) + %w(VERSION)
+  gem.files         = `git ls-files`.split($/) + %w(REVISION)
   gem.executables   = gem.files.grep(%r{^bin/}).map{ |f| File.basename(f) }
   gem.test_files    = gem.files.grep(%r{^(test|spec|features)/})
   gem.require_paths = ["lib"]
@@ -21,10 +22,10 @@ Gem::Specification.new do |gem|
 
   # dependency
   gem.add_dependency('i18n')
-  gem.add_dependency('json')
 
   # for development
-  gem.add_development_dependency('minitest')
+  gem.add_development_dependency('rake')
+  gem.add_development_dependency('minitest', '~> 4.7') if Gem.ruby_version < Gem::Version.create('2.0')
   gem.add_development_dependency('turn')
 
   gem.post_install_message = %Q{
